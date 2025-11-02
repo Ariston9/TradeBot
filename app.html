@@ -77,7 +77,10 @@
       document.getElementById("dir").textContent = "⏳ Анализ " + pair + "...";
 
       // ⚙️ Здесь укажи свой backend endpoint из Colab/ngrok:
-      const url = `https://YOUR_NGROK_URL/get_signal?pair=${encodeURIComponent(pair)}`;
+      // извлекаем API-URL из параметра ?api=... в адресе страницы
+      const params = new URLSearchParams(window.location.search);
+      const apiBase = params.get("api") || "";
+      const url = `${apiBase}/get_signal?pair=${encodeURIComponent(pair)}`;
       try {
         const res = await fetch(url);
         const data = await res.json();
