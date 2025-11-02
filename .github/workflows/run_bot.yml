@@ -23,7 +23,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install git+https://github.com/burnash/tvdatafeed.git@master
+          pip install git+https://ghp_anonymous@github.com/DarkSuniu/tvdatafeed.git
 
       - name: Run bot
         env:
