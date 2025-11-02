@@ -17,17 +17,14 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 import uvicorn, threading
-
-
 # ---------- ВСТАВЬ СВОИ КЛЮЧИ ----------
-BOT_TOKEN = "8211755249:AAGoETITOWaFowqh1AQXjzRqwsiFrV4bBb0"
-API_KEY   = "24e4b8641e37437a80c42cb7c0949fe1"
-# --- логин TradingView (лучше руками вводить, чтобы не хранить в коде) ---
-tv = TvDatafeed(username='bugona10@gmail.com', password='abGY3vAW2t1012')
+import os
 
-# TV_USER = input("bugona10@gmail.com ")
-# TV_PASS = getpass.getpass()
-
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+API_KEY = os.getenv("API_KEY")
+TV_USER = os.getenv("TV_USER")
+TV_PASS = os.getenv("TV_PASS")
+API_URL = os.getenv("API_URL")
 
 # ---------------------------------------
 
