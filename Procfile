@@ -1,1 +1,1 @@
-worker: python bot.py
+worker: tradebot_tradingview.py
