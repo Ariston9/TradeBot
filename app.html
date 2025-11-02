@@ -1,6 +1,116 @@
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-  tg.MainButton.text = "Обновить сигналы";
-</script>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trade Assistant</title>
+
+<style>
+  body {
+    background: #0f172a;
+    color: #f8fafc;
+    font-family: "Inter", sans-serif;
+    padding: 12px;
+  }
+  .card {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
+  }
+  h2 { margin: 0 0 10px 0; font-size: 18px; }
+  select, button {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    margin-top: 6px;
+    font-size: 15px;
+  }
+  button {
+    background: #22c55e;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #chart-container {
+    margin-top: 12px;
+    height: 400px;
+  }
+</style>
+</head>
+<body>
+  <h2>📊 Trade Assistant</h2>
+
+  <div class="card">
+    <label>Выбери валютную пару:</label>
+    <select id="pair">
+      <option>EUR/USD</option>
+      <option>GBP/USD</option>
+      <option>USD/JPY</option>
+      <option>AUD/USD</option>
+      <option>USD/CAD</option>
+      <option>EUR/JPY</option>
+    </select>
+    <button onclick="updateSignal()">🔄 Получить сигнал</button>
+  </div>
+
+  <div class="card" id="signalCard" style="display:none;">
+    <h3 id="dir"></h3>
+    <p id="prob"></p>
+    <p id="expiry"></p>
+    <p id="price"></p>
+  </div>
+
+  <div id="chart-container"></div>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    async function updateSignal() {
+      const pair = document.getElementById("pair").value;
+      document.getElementById("signalCard").style.display = "block";
+      document.getElementById("dir").textContent = "⏳ Анализ " + pair + "...";
+
+      // ⚙️ Здесь укажи свой backend endpoint из Colab/ngrok:
+      const url = `https://YOUR_NGROK_URL/get_signal?pair=${encodeURIComponent(pair)}`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        document.getElementById("dir").textContent =
+          data.dir === "BUY" ? "📈 Покупать" :
+          data.dir === "SELL" ? "🔻 Продавать" : "⚪ Ожидание";
+
+        document.getElementById("prob").textContent = `🎯 Вероятность: ${data.prob}%`;
+        document.getElementById("expiry").textContent =
+          data.expiry ? `⏱ Экспирация: ${data.expiry} мин` : "Сигнал слабый";
+        document.getElementById("price").textContent =
+          data.entry_price ? `💰 Цена входа: ${data.entry_price.toFixed(5)}` : "";
+
+        showChart(pair);
+      } catch (e) {
+        document.getElementById("dir").textContent = "❌ Ошибка загрузки данных.";
+      }
+    }
+
+    function showChart(pair) {
+      document.getElementById("chart-container").innerHTML = "";
+      new TradingView.widget({
+        "autosize": true,
+        "symbol": pair.replace("/", ""),
+        "interval": "1",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "container_id": "chart-container"
+      });
+    }
+  </script>
+</body>
+</html>
