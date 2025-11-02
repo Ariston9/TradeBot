@@ -8,5 +8,4 @@ magic-filter==1.0.12
 pydantic==2.5.3
 pydantic-core==2.14.6
 requests==2.32.3
-tvdatafeed @
 git+https://github.com/StreamAlpha/tvdatafeed.git
