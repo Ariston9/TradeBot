@@ -1,0 +1,11 @@
+aiogram==3.2.0
+pandas==2.2.2
+matplotlib==3.10.0
+nest_asyncio==1.6.0
+numpy==2.0.2
+aiohttp==3.9.5
+magic-filter==1.0.12
+pydantic==2.5.3
+pydantic-core==2.14.6
+requests==2.32.3
+git+https://github.com/StreamAlpha/tvdatafeed.git
