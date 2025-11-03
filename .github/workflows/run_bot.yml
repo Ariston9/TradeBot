@@ -29,11 +29,11 @@ jobs:
           unzip -q tvdatafeed.zip -d tvdatafeed || true
           pip install ./tvdatafeed-master || true
 
-      - name: Run bot
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          TV_USER: ${{ secrets.TV_USER }}
-          TV_PASS: ${{ secrets.TV_PASS }}
-          API_URL: ${{ secrets.API_URL }}
-        run: |
-          python tradebot_tradingview.py
+      #- name: Run bot
+        #env:
+          #BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          #TV_USER: ${{ secrets.TV_USER }}
+          #TV_PASS: ${{ secrets.TV_PASS }}
+          #API_URL: ${{ secrets.API_URL }}
+        #run: |
+         # python tradebot_tradingview.py
