@@ -1,10 +1,10 @@
-name: Run Telegram Bot
+#name: Run Telegram Bot
 
-on:
-  workflow_dispatch:
-  push:
-  schedule:
-    - cron: "0 */6 * * *"   # перезапуск каждые 6 часов (вечная работа)
+#on:
+  #workflow_dispatch:
+ # push:
+ # schedule:
+   # - cron: "0 */6 * * *"   # перезапуск каждые 6 часов (вечная работа)
 
 jobs:
   bot:
