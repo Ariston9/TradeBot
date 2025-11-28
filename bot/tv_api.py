@@ -1,105 +1,96 @@
-import requests
 import pandas as pd
+import yfinance as yf
 
-# Базовый URL для TradingView Scanner API
-TV_SCAN_URL = "https://scanner.tradingview.com/{}/scan"
 
-# Соотношение таймфреймов
-TF_MAP = {
-    "1min": "1",
-    "5min": "5",
-    "15min": "15",
+# Соответствие таймфреймов бота и yfinance
+INTERVAL_MAP = {
+    "1min": "1m",
+    "5min": "5m",
+    "15min": "15m",
 }
 
-# Разные источники данных
-DATA_SOURCES = [
-    ("forex", "FX:{}"),
-    ("forex", "OANDA:{}"),
-    ("forex", "FXCM:{}"),
-    ("forex", "FOREXCOM:{}"),
-]
 
-
-def fetch_tv_data(market: str, symbol: str, interval: str):
+def _pair_to_yahoo_symbol(pair: str) -> str:
     """
-    Устойчивая функция получения OHLC данных с TradingView.
-    Работает с 3 форматами ответа: dict, list, sparse.
+    'EUR/CHF' -> 'EURCHF=X'
+    'GBP/USD' -> 'GBPUSD=X'
+    и т.п.
+    """
+    return pair.replace("/", "") + "=X"
+
+
+def fetch_yahoo_data(symbol: str, interval: str, n_bars: int) -> pd.DataFrame | None:
+    """
+    Получаем историю свечей с Yahoo Finance.
+
+    symbol  – строка вида 'EURCHF=X'
+    interval – '1min' / '5min' / '15min'
+    n_bars – сколько баров вернуть
     """
 
-    tf = TF_MAP.get(interval, "1")
+    yf_interval = INTERVAL_MAP.get(interval, "1m")
 
-    payload = {
-        "symbols": {"tickers": [symbol], "query": {"types": []}},
-        "columns": [
-            f"open|{tf}",
-            f"high|{tf}",
-            f"low|{tf}",
-            f"close|{tf}",
-            f"time|{tf}",
-        ],
-    }
+    # Берём запас по времени, чтобы точно хватило n_bars
+    # Для минутных таймфреймов достаточно пары дней
+    df = yf.download(
+        symbol,
+        period="7d",
+        interval=yf_interval,
+        progress=False,
+        auto_adjust=False,
+    )
 
-    try:
-        r = requests.post(TV_SCAN_URL.format(market), json=payload, timeout=10)
-
-        if not r.ok:
-            return None
-
-        data = r.json()
-
-        if "data" not in data or not data["data"]:
-            return None
-
-        d = data["data"][0]["d"]
-
-        # ===============================
-        # FORMAT 1 — нормальный формат (dict)
-        # ===============================
-        if isinstance(d, dict):
-            return pd.DataFrame({
-                "open": d.get(f"open|{tf}", []),
-                "high": d.get(f"high|{tf}", []),
-                "low": d.get(f"low|{tf}", []),
-                "close": d.get(f"close|{tf}", []),
-                "time": d.get(f"time|{tf}", []),
-            })
-
-        # ===============================
-        # FORMAT 2 — редкий случай: d = [open[], high[], low[], close[], time[]]
-        # ===============================
-        if isinstance(d, list) and len(d) >= 5:
-            return pd.DataFrame({
-                "open": d[0],
-                "high": d[1],
-                "low": d[2],
-                "close": d[3],
-                "time": d[4],
-            })
-
-        # ===============================
-        # FORMAT 3 — TradingView вернул фигню
-        # ===============================
+    if df is None or df.empty:
         return None
 
-    except Exception:
+    # Приводим к формату, который дальше использует бот
+    df = df.reset_index()
+
+    # У yfinance индекс – колонка Datetime / DatetimeUTC
+    # Приведём к единому виду: time (unix) и dt_utc (datetime)
+    if "Datetime" in df.columns:
+        dt_col = "Datetime"
+    elif "Date" in df.columns:
+        dt_col = "Date"
+    else:
+        # На всякий случай – неизвестный формат
         return None
+
+    df["dt_utc"] = pd.to_datetime(df[dt_col], utc=True)
+    df["time"] = df["dt_utc"].view("int64") // 10**9  # unix-timestamp в секундах
+
+    # Переименуем цены под твой код
+    df.rename(
+        columns={
+            "Open": "open",
+            "High": "high",
+            "Low": "low",
+            "Close": "close",
+        },
+        inplace=True,
+    )
+
+    # Оставим только нужные колонки
+    df = df[["time", "open", "high", "low", "close", "dt_utc"]]
+
+    # Вернём хвост нужной длины
+    return df.tail(n_bars)
 
 
 def get_tv_series(pair: str, interval: str = "1min", n_bars: int = 300):
     """
-    Логика подбора работающего тикера.
-    Возвращает последние n_bars свечей в UTC.
+    Основная функция, которую вызывает бот.
+
+    Возвращает:
+      (DataFrame, None)  – если данные есть
+      (None, {"error": ...}) – если данных нет
     """
+    symbol = _pair_to_yahoo_symbol(pair)
 
-    symbol = pair.replace("/", "")
+    df = fetch_yahoo_data(symbol, interval, n_bars)
+    if df is None or df.empty:
+        return None, {"error": f"No data for {pair} from Yahoo Finance"}
 
-    for market, fmt in DATA_SOURCES:
-        ticker = fmt.format(symbol)
-        df = fetch_tv_data(market, ticker, interval)
-
-        if df is not None and len(df) > 0:
-            df["datetime"] = pd.to_datetime(df["time"], unit="s", utc=True)
-            df["dt_utc"] = df["datetime"]
-            return df.tail(n_bars), None
-
-    return None, {"error": f"No TradingView data for {pair}"}
+    # Совместимость с остальным кодом: он ожидает колонку dt_utc
+    # (она уже есть в fetch_yahoo_data)
+    return df, None
