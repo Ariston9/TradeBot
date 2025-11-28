@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # TradeBot (Telegram + TradingView + PocketOption + WebAPI)
 
 Модульная версия твоего Trade Assistant:
@@ -27,3 +28,6 @@ python -m bot.bot_main
 ```bash
 uvicorn api.server:app --host 0.0.0.0 --port 8000
 ```
+=======
+# TradeBot
+>>>>>>> 0161a999e87c575839258bc9953bbb6e8754c7fd
