@@ -3,7 +3,7 @@ import asyncio
 
 from .config import PO_SESSION_TOKEN
 
-PO_WS_URL = "wss://ws.pocketoption.com/socket.io/?EIO=4&transport=websocket"
+PO_WS_URL = "wss://quotes-gw.pocketoption.com/realtime"
 
 CURRENT_PO_PRICE = {}  # { "EURUSD": {"mid":..., "bid":..., "ask":...}, ... }
 
