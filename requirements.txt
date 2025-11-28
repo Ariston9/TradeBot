@@ -1,0 +1,11 @@
+aiogram==3.2
+python-socketio[client]
+aiohttp
+pandas
+numpy
+matplotlib
+requests
+tvdatafeed
+python-dotenv
+fastapi
+uvicorn
