@@ -8,7 +8,7 @@ load_dotenv(BASE_DIR / ".env")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 TV_USERNAME = os.getenv("TV_USERNAME")
 TV_PASSWORD = os.getenv("TV_PASSWORD")
-PO_SESSION_TOKEN = os.getenv("PO_SESSION_TOKEN")
+# PO_SESSION_TOKEN = os.getenv("PO_SESSION_TOKEN")
 SIGNAL_CHAT_ID = int(os.getenv("SIGNAL_CHAT_ID", "0"))
 
 DATA_DIR = BASE_DIR / "data"
@@ -20,8 +20,7 @@ PAIRS = [
     "GBP/USD","GBP/JPY","GBP/CAD","GBP/AUD","GBP/CHF",
     "USD/JPY","USD/CAD","USD/CHF",
     "AUD/USD","AUD/JPY","AUD/CAD","AUD/CHF",
-    "CAD/JPY","CAD/CHF",
-    "OTC EUR/USD","OTC GBP/USD","OTC USD/JPY","OTC USD/CAD"
+    "CAD/JPY","CAD/CHF"
 ]
 
 TFS = {"M1":"1min","M5":"5min","M15":"15min"}
