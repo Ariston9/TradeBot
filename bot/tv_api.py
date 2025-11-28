@@ -19,10 +19,11 @@ DATA_SOURCES = [
 
 def fetch_tv_data(market: str, symbol: str, interval: str):
     tf = TF_MAP.get(interval, "1")
+
     payload = {
         "symbols": {
             "tickers": [symbol],
-            "query": { "types": [] }
+            "query": {"types": []}
         },
         "columns": [
             f"open|{tf}",
@@ -43,14 +44,27 @@ def fetch_tv_data(market: str, symbol: str, interval: str):
 
     d = data["data"][0]["d"]
 
-    return pd.DataFrame({
-        "open": d.get(f"open|{tf}", []),
-        "high": d.get(f"high|{tf}", []),
-        "low": d.get(f"low|{tf}", []),
-        "close": d.get(f"close|{tf}", []),
-        "time": d.get(f"time|{tf}", []),
-    })
+    # FORMAT 1 — Correct dict
+    if isinstance(d, dict):
+        return pd.DataFrame({
+            "open": d.get(f"open|{tf}", []),
+            "high": d.get(f"high|{tf}", []),
+            "low": d.get(f"low|{tf}", []),
+            "close": d.get(f"close|{tf}", []),
+            "time": d.get(f"time|{tf}", []),
+        })
 
+    # FORMAT 2 — TradingView returns list (rare pairs)
+    if isinstance(d, list) and len(d) >= 5:
+        return pd.DataFrame({
+            "open": d[0],
+            "high": d[1],
+            "low": d[2],
+            "close": d[3],
+            "time": d[4],
+        })
+
+    return None
 
 def get_tv_series(pair: str, interval: str = "1min", n_bars: int = 300):
     symbol = pair.replace("/", "")
