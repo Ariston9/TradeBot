@@ -14,8 +14,8 @@ from .logger import stats_last_24h, build_pie, evaluate_pending_signals
 from .autoscan import AUTO_SCAN_ENABLED, autoscan_loop
 from .pocket_ws import pocketoption_price_feed
 
-bot = Bot(token=BOT_TOKEN)
 print("RAW TOKEN:", repr(BOT_TOKEN))
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 SESS: dict[int, dict] = {}
