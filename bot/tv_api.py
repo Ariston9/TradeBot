@@ -1,44 +1,68 @@
-from datetime import datetime, timezone
-from typing import Tuple, Optional, Dict
-
+import requests
 import pandas as pd
-from tvDatafeed import TvDatafeed, Interval
 
-from .config import TV_USERNAME, TV_PASSWORD, TV_MAP
+TV_SCAN_URL = "https://scanner.tradingview.com/{}/scan"
 
-INTERVAL_MAP = {
-    "1min":  Interval.in_1_minute,
-    "5min":  Interval.in_5_minute,
-    "15min": Interval.in_15_minute,
+TF_MAP = {
+    "1min": "1",
+    "5min": "5",
+    "15min": "15",
 }
 
-tv = TvDatafeed(username=TV_USERNAME, password=TV_PASSWORD)
+DATA_SOURCES = [
+    ("forex", "FX:{}"),
+    ("forex", "OANDA:{}"),
+    ("forex", "FXCM:{}"),
+    ("forex", "FOREXCOM:{}"),
+]
 
 
-def get_tv_series(
-    pair: str,
-    interval: str = "5min",
-    n_bars: int = 300
-) -> Tuple[Optional[pd.DataFrame], Optional[Dict]]:
-    if pair not in TV_MAP:
-        return None, {"error": f"Пара {pair} не найдена в TV_MAP"}
-    sym, ex = TV_MAP[pair]
-    try:
-        df = tv.get_hist(symbol=sym, exchange=ex, interval=INTERVAL_MAP[interval], n_bars=n_bars)
-        if df is None or df.empty:
-            return None, {"error": "Пустой ответ от TradingView"}
+def fetch_tv_data(market: str, symbol: str, interval: str):
+    tf = TF_MAP.get(interval, "1")
+    payload = {
+        "symbols": {
+            "tickers": [symbol],
+            "query": { "types": [] }
+        },
+        "columns": [
+            f"open|{tf}",
+            f"high|{tf}",
+            f"low|{tf}",
+            f"close|{tf}",
+            f"time|{tf}"
+        ]
+    }
 
-        df = df.reset_index().rename(columns={"datetime": "datetime"})
-        for c in ["open", "high", "low", "close"]:
-            df[c] = df[c].astype(float)
-        df["dt_utc"] = pd.to_datetime(df["datetime"], utc=True)
+    r = requests.post(TV_SCAN_URL.format(market), json=payload)
+    if not r.ok:
+        return None
 
-        last_candle_time = df["dt_utc"].iloc[-1]
-        age_sec = (datetime.now(timezone.utc) - last_candle_time).total_seconds()
-        if age_sec > 3600:
-            last_time_str = last_candle_time.strftime("%Y-%m-%d %H:%M UTC")
-            return None, {"error": f"⚠️ Нет свежих котировок ({last_time_str}). Рынок, возможно, закрыт."}
+    data = r.json()
+    if "data" not in data or not data["data"]:
+        return None
 
-        return df, None
-    except Exception as e:
-        return None, {"error": str(e)}
+    d = data["data"][0]["d"]
+
+    return pd.DataFrame({
+        "open": d.get(f"open|{tf}", []),
+        "high": d.get(f"high|{tf}", []),
+        "low": d.get(f"low|{tf}", []),
+        "close": d.get(f"close|{tf}", []),
+        "time": d.get(f"time|{tf}", []),
+    })
+
+
+def get_tv_series(pair: str, interval: str = "1min", n_bars: int = 300):
+    symbol = pair.replace("/", "")
+
+    # Пробуем разные поставщики
+    for market, fmt in DATA_SOURCES:
+        ticker = fmt.format(symbol)
+        df = fetch_tv_data(market, ticker, interval)
+
+        if df is not None and len(df) > 0:
+            df["datetime"] = pd.to_datetime(df["time"], unit="s", utc=True)
+            df["dt_utc"] = df["datetime"]
+            return df.tail(n_bars), None
+
+    return None, {"error": f"No TradingView data for {pair}"}
