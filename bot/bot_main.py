@@ -225,8 +225,8 @@ def background_evaluation():
 async def main():
     threading.Thread(target=background_evaluation, daemon=True).start()
     asyncio.create_task(autoscan_loop(bot))
-    print("🌐 Starting PocketOption WebSocket...")
-    asyncio.create_task(pocketoption_price_feed())
+    # print("🌐 Starting PocketOption WebSocket...")
+    # asyncio.create_task(pocketoption_price_feed())
     print("✅ Бот запущен. Отправь /start в Telegram.")
     await dp.start_polling(bot)
 
