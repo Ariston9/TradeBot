@@ -8,3 +8,5 @@ requests
 python-dotenv
 fastapi
 uvicorn
+yfinance>=0.2.40
+
