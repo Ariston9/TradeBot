@@ -314,10 +314,7 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    import threading
-    import uvicorn
-    import asyncio
-
+    
     # запускаем Telegram-бота в отдельном потоке
     def start_bot():
         asyncio.run(main())
