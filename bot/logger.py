@@ -172,8 +172,7 @@ def evaluate_pending_signals():
 def read_signals_log(symbol: str):
     """
     Читает signals.csv и возвращает сигналы по символу.
-    Пара приходит как EURUSD (без '/').
-    В логах пары записаны как EUR/USD.
+    symbol приходит без слэша: EURUSD
     """
     try:
         rows = []
@@ -185,18 +184,16 @@ def read_signals_log(symbol: str):
 
                 t, pair, direction, prob, expiry, reason = parts
 
-                # Превращаем EUR/USD → EURUSD для сравнения
+                # Приводим EUR/USD → EURUSD для сравнения
                 if pair.replace("/", "") == symbol:
                     rows.append({
                         "time": t,
-                        "pair": pair,
+                        "symbol": pair,
                         "direction": direction,
-                        "prob": float(prob),
+                        "prob": prob,
                         "expiry": expiry,
                         "reason": reason,
                     })
         return rows
-
     except FileNotFoundError:
         return []
-
