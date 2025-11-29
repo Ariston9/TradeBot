@@ -168,3 +168,35 @@ def evaluate_pending_signals():
         print(f"✅ Оценено: {updated} (WIN: {wins}, LOSE: {losses})")
     else:
         print("ℹ️ Новых завершённых сигналов нет.")
+        
+def read_signals_log(symbol: str):
+    """
+    Читает signals.csv и возвращает сигналы по символу.
+    Пара приходит как EURUSD (без '/').
+    В логах пары записаны как EUR/USD.
+    """
+    try:
+        rows = []
+        with open("signals.csv", "r", encoding="utf-8") as f:
+            for line in f.readlines()[1:]:  # пропускаем заголовок
+                parts = line.strip().split(",")
+                if len(parts) < 6:
+                    continue
+
+                t, pair, direction, prob, expiry, reason = parts
+
+                # Превращаем EUR/USD → EURUSD для сравнения
+                if pair.replace("/", "") == symbol:
+                    rows.append({
+                        "time": t,
+                        "pair": pair,
+                        "direction": direction,
+                        "prob": float(prob),
+                        "expiry": expiry,
+                        "reason": reason,
+                    })
+        return rows
+
+    except FileNotFoundError:
+        return []
+
