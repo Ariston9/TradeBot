@@ -8,6 +8,38 @@ from .indicators import compute_indicators
 from .scoring import score_on_tf, calc_overall_probability
 from .logger import log_signal
 
+def check_market_open(df):
+    """
+    Проверка свежести свечей — как в Colab.
+    Возвращает dict({"error": "..."}) если рынок закрыт.
+    Иначе — None.
+    """
+    if df is None or df.empty:
+        return {"error": "⚠️ Рынок закрыт.\nНет котировок."}
+
+    if "datetime" not in df.columns:
+        return {"error": "⚠️ Рынок закрыт.\nНет timestamp у свечей."}
+
+    ts = df["datetime"].iloc[-1]
+
+    try:
+        if ts.tzinfo is None:
+            ts = ts.tzlocalize("UTC")
+    except:
+        return {"error": "⚠️ Рынок закрыт.\nНеверная метка времени."}
+
+    age_sec = (datetime.now(timezone.utc) - ts).total_seconds()
+
+    # старше 60 минут → рынок закрыт
+    if age_sec > 3600:
+        return {
+            "error": (
+                "⚠️ Рынок закрыт.\n"
+                f"Последняя свеча была: {ts.strftime('%Y-%m-%d %H:%M UTC')}"
+            )
+        }
+
+    return None
 
 # -------------------- core analysis (как в Colab) --------------------
 async def analyze_pair_for_user(user_id: int, pair: str):
@@ -36,6 +68,12 @@ async def analyze_pair_for_user(user_id: int, pair: str):
                 return None, err["error"]
             print(f"⚠️ Не удалось получить данные {pair} {tf_int}: {err}")
             continue
+
+        # ---- Проверка рынка (как в Colab) ----
+        market_state = check_market_open(df_tf)
+        if market_state:
+            return None, market_state["error"]
+        # --------------------------------------
 
         # Индикаторы, как в Colab
         df_tf = compute_indicators(df_tf)
