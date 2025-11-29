@@ -1,3 +1,4 @@
+# bot/bot_main.py
 import asyncio
 from datetime import datetime, timezone
 import threading
@@ -11,19 +12,20 @@ from aiogram.exceptions import TelegramBadRequest
 from .config import BOT_TOKEN, PAIRS
 from .analyzer import analyze_pair_for_user
 from .logger import stats_last_24h, build_pie, evaluate_pending_signals
-from .autoscan import AUTO_SCAN_ENABLED, autoscan_loop
+from .autoscan import autoscan_loop
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-SESS: dict[int, dict] = {}
+SESS = {}
 
 
-def panel_text_header() -> str:
+# ----------------------- UI ----------------------
+def panel_text_header():
     return "📊 *Trade Assistant — Анализ рынка*\n\nВыбери валютную пару:"
 
 
-def kb_main(pair_selected: str | None):
+def kb_main(pair_selected):
     rows = []
     for i in range(0, len(PAIRS), 3):
         row = []
@@ -33,12 +35,12 @@ def kb_main(pair_selected: str | None):
         rows.append(row)
 
     if pair_selected:
-        tv_symbol = pair_selected.replace("/", "")
-        web_link = f"https://ariston9.github.io/TradeBot/chart.html?symbol={tv_symbol}"
+        symbol = pair_selected.replace("/", "")
+        link = f"https://ariston9.github.io/TradeBot/chart.html?symbol={symbol}"
         rows.append([
             InlineKeyboardButton(
                 text="📈 Открыть график TradingView",
-                web_app=WebAppInfo(url=web_link)
+                web_app=WebAppInfo(url=link)
             )
         ])
 
@@ -54,13 +56,14 @@ def kb_main(pair_selected: str | None):
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
+# ----------------------- START ----------------------
 @dp.message(Command("start"))
 async def on_start(m: types.Message):
-    SESS[m.from_user.id] = {"pair": None, "panel_msg_id": None}
-    text = panel_text_header()
-    msg = await m.answer(text, reply_markup=kb_main(None), parse_mode="Markdown")
+    SESS[m.from_user.id] = {"pair": None}
+    msg = await m.answer(panel_text_header(), reply_markup=kb_main(None), parse_mode="Markdown")
 
 
+# ---------------------- Выбор пары -----------------------
 @dp.callback_query(lambda c: c.data.startswith("PAIR|"))
 async def on_pick_pair(cb: types.CallbackQuery):
     await cb.answer()
@@ -90,11 +93,92 @@ async def on_pick_pair(cb: types.CallbackQuery):
     text = (
         f"{panel_text_header()}\n\n"
         f"*Текущий анализ:* {res['pair']}\n"
+        f"📊 Направление: `{res['dir']}`\n"
         f"🎯 Вероятность: *{res['prob']:.1f}%*\n"
-        f"Направление: `{res['dir']}`\n"
         f"⏱ Экспирация: {res['expiry']} мин\n"
         f"Цена входа: {res['entry_price']:.5f}\n"
         f"📅 Обновлено: {upd}"
     )
 
     await cb.message.edit_text(text, reply_markup=kb_main(pair), parse_mode="Markdown")
+
+
+# ---------------------- REFRESH ----------------------
+@dp.callback_query(lambda c: c.data == "ACT|REFRESH"))
+async def on_refresh(cb: types.CallbackQuery):
+    await cb.answer()
+
+    user = cb.from_user.id
+    pair = SESS.get(user, {}).get("pair")
+    if not pair:
+        await cb.answer("Сначала выбери пару", show_alert=True)
+        return
+
+    upd = datetime.now(timezone.utc).strftime("%H:%M UTC")
+
+    await cb.message.edit_text(
+        f"{panel_text_header()}\n\n⏳ Обновляю {pair}...",
+        reply_markup=kb_main(pair),
+        parse_mode="Markdown"
+    )
+
+    res, err = await analyze_pair_for_user(user, pair)
+    if err:
+        await cb.message.edit_text(
+            f"{panel_text_header()}\n\n❌ {err}",
+            reply_markup=kb_main(pair),
+            parse_mode="Markdown"
+        )
+        return
+
+    text = (
+        f"{panel_text_header()}\n\n"
+        f"*Текущий анализ:* {res['pair']}\n"
+        f"📊 Направление: `{res['dir']}`\n"
+        f"🎯 Вероятность: *{res['prob']:.1f}%*\n"
+        f"⏱ Экспирация: {res['expiry']} мин\n"
+        f"Цена входа: {res['entry_price']:.5f}\n"
+        f"📅 Обновлено: {upd}"
+    )
+
+    await cb.message.edit_text(text, reply_markup=kb_main(pair), parse_mode="Markdown")
+
+
+# ---------------------- STATISTICS ----------------------
+@dp.callback_query(lambda c: c.data == "ACT|STATS"))
+async def on_stats(cb: types.CallbackQuery):
+    await cb.answer()
+
+    pair = SESS.get(cb.from_user.id, {}).get("pair")
+    txt = (
+        f"{panel_text_header()}\n\n"
+        f"📈 Статистика за 24 часа\n"
+    )
+
+    s = stats_last_24h()
+    txt += (
+        f"Всего сигналов: {s['total']}\n"
+        f"Плюс: {s['wins']}\n"
+        f"Минус: {s['losses']}\n"
+        f"Проходимость: {s['winrate']}%"
+    )
+
+    await cb.message.edit_text(txt, reply_markup=kb_main(pair), parse_mode="Markdown")
+
+
+# ---------------------- AUTOSCAN ----------------------
+def background_evaluation():
+    while True:
+        evaluate_pending_signals()
+        _time.sleep(500)
+
+
+async def main():
+    threading.Thread(target=background_evaluation, daemon=True).start()
+    asyncio.create_task(autoscan_loop(bot))
+    print("✅ Бот запущен. Отправь /start в Telegram.")
+    await dp.start_polling(bot)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
