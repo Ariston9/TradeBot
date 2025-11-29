@@ -3,6 +3,7 @@ import threading
 import time
 from datetime import datetime, timezone
 from typing import Dict, Any
+from .autoscan import autoscan_loop
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
