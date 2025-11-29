@@ -143,6 +143,18 @@ def background_evaluation() -> None:
 
 # ================== HANDLERS ==================
 
+@dp.message(Command("autoscan_on"))
+async def autoscan_on(msg: types.Message):
+    global AUTO_SCAN_ENABLED
+    AUTO_SCAN_ENABLED = True
+    await msg.answer("🚀 Авто-сканер включён.")
+    
+@dp.message(Command("autoscan_off"))
+async def autoscan_off(msg: types.Message):
+    global AUTO_SCAN_ENABLED
+    AUTO_SCAN_ENABLED = False
+    await msg.answer("⏹ Авто-сканер выключён.")
+
 @dp.message(Command("start"))
 async def on_start(m: types.Message) -> None:
     user_id = m.from_user.id
