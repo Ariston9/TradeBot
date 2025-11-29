@@ -10,6 +10,7 @@ TV_USERNAME = os.getenv("TV_USERNAME")
 TV_PASSWORD = os.getenv("TV_PASSWORD")
 # PO_SESSION_TOKEN = os.getenv("PO_SESSION_TOKEN")
 SIGNAL_CHAT_ID = int(os.getenv("SIGNAL_CHAT_ID", "0"))
+API_URL = "https://example.com"
 
 DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
