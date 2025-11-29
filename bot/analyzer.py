@@ -140,7 +140,7 @@ async def analyze_pair_for_user(user_id: int, pair: str):
 
         df_tf = compute_indicators(df_tf)
         # ---- ПРОВЕРКА СВЕЖЕСТИ СВЕЧЕЙ (как в Colab) ----
-        def check_market_open(df):
+    def check_market_open(df):
         from datetime import datetime, timezone
     
         # Если данных нет вообще → точно рынок закрыт
