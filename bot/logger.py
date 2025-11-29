@@ -70,7 +70,7 @@ def evaluate_signal_entry(entry_row) -> Tuple[str, float | None, str | None]:
     if idx >= len(df):
         return "PENDING", None, "no bar yet"
 
-    price_at = float(df["close"].iloc[idx])
+    price_at = float(df["close"].iloc[idx].item())
 
     if (entry_row["direction"] == "BUY" and price_at > entry_row["entry_price"]) or            (entry_row["direction"] == "SELL" and price_at < entry_row["entry_price"]):
         res = "WIN"
