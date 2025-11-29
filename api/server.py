@@ -1,58 +1,40 @@
-# bot/api/server.py
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from .analyzer import analyze_pair_for_user
+from .config import PAIRS
+from .logger import get_last_signal
 
-from bot.analyzer import analyze_pair_for_user
-from bot.logger import read_signals_log
-from bot.config import PAIRS  # теперь API знает доступные пары
+api = FastAPI(title="TradeBot API")
 
-app = FastAPI(title="TradeBot WebAPI")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+class PairRequest(BaseModel):
+    pair: str
 
-@app.get("/pairs")
-def get_pairs():
+
+@api.get("/status")
+def status():
+    return {"status": "ok", "pairs": PAIRS}
+
+
+@api.post("/analyze")
+async def api_analyze(req: PairRequest):
     """
-    Возвращает все пары, которые доступны боту (из config.py)
+    Анализ валютной пары через REST API для WebApp.
     """
-    return {"pairs": PAIRS}
+    res, err = await analyze_pair_for_user(0, req.pair)
+
+    if err:
+        return {"error": err}
+
+    return res
 
 
-@app.get("/get_signal")
-async def get_signal(pair: str):
+@api.get("/last_signal")
+def last_signal():
     """
-    Возвращает анализ для ЛЮБОЙ пары, которая есть в config.PAIRS
+    Возвращает последний сигнал из logs/signals.csv
     """
-    # проверяем существование пары
-    if pair not in PAIRS:
-        return JSONResponse(
-            {"error": f"Пара {pair} не найдена в списке доступных."},
-            status_code=400
-        )
-
-    try:
-        res, err = await analyze_pair_for_user(user_id=0, pair=pair)
-        if err:
-            return JSONResponse({"error": err}, status_code=400)
-        return JSONResponse(res)
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
-
-
-@app.get("/signals")
-def get_signals(symbol: str):
-    """
-    История сигналов: symbol = EURUSD (без слэша)
-    """
-    try:
-        hist = read_signals_log(symbol)
-        return JSONResponse(hist)
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+    sig = get_last_signal()
+    if sig is None:
+        return {"signal": None}
+    return {"signal": sig}
