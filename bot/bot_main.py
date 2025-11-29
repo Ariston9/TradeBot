@@ -16,7 +16,7 @@ from .analyzer import analyze_pair_for_user
 from .logger import stats_last_24h, build_pie, evaluate_pending_signals
 
 from fastapi import FastAPI
-from bot.api.sever import app as fastapi_app
+from bot.api.server import app as fastapi_app
 
 
 
