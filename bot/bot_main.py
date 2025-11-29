@@ -130,7 +130,7 @@ def panel_text_stats() -> str:
 
 def background_evaluation() -> None:
     """
-    Фоновая проверка signals.csv каждые 3 минуты.
+    Фоновая проверка signals.csv каждые 6 минуты.
     Запускается отдельным потоком при старте.
     """
     while True:
@@ -138,7 +138,7 @@ def background_evaluation() -> None:
             evaluate_pending_signals()
         except Exception as e:
             print("background_evaluation error:", e)
-        time.sleep(180)
+        time.sleep(500)
 
 
 # ================== HANDLERS ==================
