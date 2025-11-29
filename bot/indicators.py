@@ -3,7 +3,6 @@ import pandas as pd
 EMA_PERIOD        = 14
 RSI_PERIOD        = 8
 ATR_K             = 0.5
-API_URL = "https://example.com"
 
 
 def compute_rsi(series: pd.Series, period: int = RSI_PERIOD):
