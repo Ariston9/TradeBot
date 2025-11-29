@@ -22,14 +22,14 @@ def detect_reversal(df: pd.DataFrame, swing_lookback: int = 3):
     for i in range(len(df) - swing_lookback * 2, swing_lookback, -1):
         window = df.iloc[i - swing_lookback : i + swing_lookback + 1]
         center = df.iloc[i]
-        if center["high"] == window["high"].max():
+        if float(center["high"]) == float(window["high"].max()):
             swing_high_idx = i
             break
 
     for i in range(len(df) - swing_lookback * 2, swing_lookback, -1):
         window = df.iloc[i - swing_lookback : i + swing_lookback + 1]
         center = df.iloc[i]
-        if center["low"] == window["low"].min():
+        if float(center["low"]) == float(window["low"].min()):
             swing_low_idx = i
             break
 
