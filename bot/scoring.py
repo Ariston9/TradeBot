@@ -61,9 +61,14 @@ def score_on_tf(df: pd.DataFrame, tf_name: str):
     ema12 = float(last.get("EMA12", ema20))
     ema26 = float(last.get("EMA26", ema20))
 
-    trend_up = ema12 > ema26 and last["close"] > ema20
-    trend_down = ema12 < ema26 and last["close"] < ema20
-    ema_vote = 1 if trend_up else -1 if trend_down else 0
+    # Используем только последнее значение индикаторов
+    ema12_last = df["EMA12"].iloc[-1]
+    ema26_last = df["EMA26"].iloc[-1]
+    
+    trend_up = ema12_last > ema26_last
+    trend_down = ema12_last < ema26_last
+    
+    ema_vote = 1 if trend_up else (-1 if trend_down else 0)
 
     macd_data = compute_macd(df)
     macd = macd_data["macd"]
