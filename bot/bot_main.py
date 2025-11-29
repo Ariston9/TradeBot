@@ -219,7 +219,7 @@ async def on_stats(cb: types.CallbackQuery):
 def background_evaluation():
     while True:
         evaluate_pending_signals()
-        _time.sleep(180)
+        _time.sleep(500)
 
 
 async def main():
