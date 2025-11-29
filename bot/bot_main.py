@@ -15,8 +15,8 @@ from .config import BOT_TOKEN, PAIRS, API_URL
 from .analyzer import analyze_pair_for_user
 from .logger import stats_last_24h, build_pie, evaluate_pending_signals
 
-# from fastapi import FastAPI
-# from bot.api import api as fastapi_app
+from fastapi import FastAPI
+from bot.api import api as fastapi_app
 
 
 
@@ -314,18 +314,19 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import threading
+    import uvicorn
+    import asyncio
 
-    # import threading
-    # import uvicorn
+    # запускаем Telegram-бота в отдельном потоке
+    def start_bot():
+        asyncio.run(main())
 
-    # # запускаем Telegram-бота параллельно
-    # threading.Thread(target=lambda: asyncio.run(main()), daemon=True).start()
+    threading.Thread(target=start_bot, daemon=True).start()
 
-    # # запускаем WebAPI (FastAPI)
-    # uvicorn.run(
-    #     "bot.api.server:app",
-    #     host="0.0.0.0",
-    #     port=8000,
-    #     reload=False
-    # )
+    # запускаем WebAPI (FastAPI)
+    uvicorn.run(
+        "bot.api.server:app",
+        host="0.0.0.0",
+        port=8000
+    )
