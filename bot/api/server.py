@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from .analyzer import analyze_pair_for_user
+from bot.analyzer import analyze_pair_for_user
 from .config import PAIRS
 from .logger import get_last_signal
 
