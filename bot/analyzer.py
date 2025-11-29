@@ -186,7 +186,9 @@ async def analyze_pair_for_user(user_id: int, pair: str):
         # Проверяем рынок
         market_state = check_market_open(df_tf)
         if market_state:
-            return None, market_state
+            if market_state:
+               return None, market_state["error"]
+
         # -------------------------------------------------
 
         ind = score_on_tf(df_tf, tf_name)
