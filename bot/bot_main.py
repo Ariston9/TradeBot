@@ -299,9 +299,10 @@ async def on_stats(cb: CallbackQuery) -> None:
 async def main() -> None:
     print("✅ Бот запущен. Отправь /start в Telegram.")
 
-    asyncio.create_task(autoscan_loop())   # <<< запуск автосканера
     # фоновая оценка сигналов
     threading.Thread(target=background_evaluation, daemon=True).start()
+    # 🔥 вот эта строка запускает autoscan
+    asyncio.create_task(autoscan_loop(bot))
 
     await dp.start_polling(bot)
 
