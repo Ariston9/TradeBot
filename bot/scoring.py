@@ -57,9 +57,10 @@ def score_on_tf(df: pd.DataFrame, tf_name: str):
     df = df.sort_values("datetime") if "datetime" in df.columns else df
     last = df.iloc[-1]
 
-    ema20 = float(last["EMA20"])
-    ema12 = float(last.get("EMA12", ema20))
-    ema26 = float(last.get("EMA26", ema20))
+    ema20 = float(df["EMA20"].iloc[-1])
+    ema12 = float(df["EMA12"].iloc[-1])
+    ema26 = float(df["EMA26"].iloc[-1])
+    rsi   = float(df["RSI"].iloc[-1])
 
     # Используем только последнее значение индикаторов
     ema12_last = df["EMA12"].iloc[-1]
