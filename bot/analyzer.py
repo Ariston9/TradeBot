@@ -126,6 +126,25 @@ async def analyze_pair_for_user(user_id: int, pair: str):
     Логика = как в Colab-версии, включая WICK-ENTRY.
     """
 
+        # Проверяем, что есть колонка с датой
+    if "datetime" not in df_tf.columns:
+        return None, {"error": "❌ В данных нет поля datetime"}
+    
+    # Last candle time
+    last_candle_time = df_tf["datetime"].iloc[-1]
+    
+    # Приводим к UTC, если не timezone-aware
+    if last_candle_time.tzinfo is None:
+        last_candle_time = last_candle_time.tz_localize("UTC")
+    
+    age_sec = (datetime.now(timezone.utc) - last_candle_time).total_seconds()
+    
+    # Если свеча старше 1 часа — рынок закрыт
+    if age_sec > 3600:
+        last_time_str = last_candle_time.strftime("%Y-%m-%d %H:%M UTC")
+        return None, {
+            "error": f"⚠️ Нет свежих котировок с {last_time_str}\nРынок, возможно, закрыт."
+        }
     # --------- Сбор индикаторов по всем TF ---------
     tf_results: list[dict] = []
     last_close_1m: float | None = None
