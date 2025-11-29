@@ -141,32 +141,47 @@ async def analyze_pair_for_user(user_id: int, pair: str):
         df_tf = compute_indicators(df_tf)
         # ---- ПРОВЕРКА СВЕЖЕСТИ СВЕЧЕЙ (как в Colab) ----
         def check_market_open(df):
-            from datetime import datetime, timezone
-        
-            if df is None or df.empty:
-                return {"error": "⚠️ Нет данных по инструменту. Возможно рынок закрыт."}
-        
-            if "datetime" not in df.columns:
-                return {"error": "⚠️ Ошибка: нет timestamp в данных."}
-        
-            last_ts = df["datetime"].iloc[-1]
-        
-            # Приводим к UTC
-            if last_ts.tzinfo is None:
-                last_ts = last_ts.tz_localize("UTC")
-        
-            now_utc = datetime.now(timezone.utc)
-            age_sec = (now_utc - last_ts).total_seconds()
-        
-            if age_sec > 3600:
-                return {
-                    "error": (
-                        f"⚠️ Рынок, возможно, закрыт.\n"
-                        f"Последняя свеча: {last_ts.strftime('%Y-%m-%d %H:%M UTC')}"
-                    )
-                }
-        
-            return None
+        from datetime import datetime, timezone
+    
+        # Если данных нет вообще → точно рынок закрыт
+        if df is None or df.empty:
+            return {
+                "error": "⚠️ Рынок закрыт.\nНет свежих котировок."
+            }
+    
+        # Если нет timestamp — считаем что данные устаревшие
+        if "datetime" not in df.columns:
+            return {
+                "error": "⚠️ Рынок закрыт.\nОтсутствует время последней свечи."
+            }
+    
+        ts = df["datetime"].iloc[-1]
+    
+        # Приводим к UTC
+        try:
+            if ts.tzinfo is None:
+                ts = ts.tz_localize("UTC")
+        except:
+            # если timestamp битый
+            return {
+                "error": "⚠️ Рынок закрыт.\nНекорректная метка времени."
+            }
+    
+        now_utc = datetime.now(timezone.utc)
+        age_sec = (now_utc - ts).total_seconds()
+    
+        # Свеча старее 60 минут
+        if age_sec > 3600:
+            return {
+                "error": (
+                    "⚠️ Рынок закрыт.\n"
+                    f"Последняя свеча была: {ts.strftime('%Y-%m-%d %H:%M UTC')}"
+                )
+            }
+    
+        # Всё ок
+        return None
+
         
         # Проверяем рынок
         market_state = check_market_open(df_tf)
