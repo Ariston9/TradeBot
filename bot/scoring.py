@@ -99,7 +99,10 @@ def score_on_tf(df: pd.DataFrame, tf_name: str):
     df["ATR"] = df["range"].rolling(14).mean()
     atr_last = float(df["ATR"].iloc[-1]) if not pd.isna(df["ATR"].iloc[-1]) else None
 
-    df["impulse"] = (df["close"] - df["close"].shift(3)) / (df["ATR"] * ATR_K)
+    close = df["close"].astype(float)
+    atr   = df["ATR"].astype(float)
+    
+    df["impulse"] = (close - close.shift(3)) / (atr * ATR_K)
     impulse_raw = float(df["impulse"].iloc[-1]) if not pd.isna(df["impulse"].iloc[-1]) else 0.0
 
     if impulse_raw > 0.7:
