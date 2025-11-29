@@ -14,7 +14,7 @@ from .logger import stats_last_24h, build_pie, evaluate_pending_signals
 from .autoscan import AUTO_SCAN_ENABLED, autoscan_loop
 # from .pocket_ws import pocketoption_price_feed
 
-print("RAW TOKEN:", repr(BOT_TOKEN))
+# print("RAW TOKEN:", repr(BOT_TOKEN))
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
@@ -176,11 +176,7 @@ async def on_refresh(cb: types.CallbackQuery):
 
     res, err = await analyze_pair_for_user(user, pair)
     if err:
-        await cb.message.edit_text(
-            f"{panel_text_header()}\n\n❌ {err}",
-            reply_markup=kb_main(pair),
-            parse_mode="Markdown"
-        )
+        await callback.message.answer(err)
         return
 
     text = panel_text_analysis(
