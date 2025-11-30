@@ -457,7 +457,7 @@ body {
 }
 
 /* ===== НИЖНЯЯ НАВИГАЦИЯ ===== */
-/* .bottom-nav {
+.bottom-nav {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -478,43 +478,8 @@ body {
   padding: 0 6px;
 
   z-index: 30;
-} */
-.bottom-nav {
-    position: fixed;
-    left: 0; right: 0; bottom: 0;
-    height: 64px;
-
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(22px);
-    -webkit-backdrop-filter: blur(22px);
-
-    border-top-left-radius: 22px;
-    border-top-right-radius: 22px;
-
-    overflow: visible; /* важно, чтобы засвет выходил за границы */
 }
 
-/* ← добавляем светящуюся верхнюю кромку */
-.bottom-nav::before {
-    content: "";
-    position: absolute;
-    top: -6px;   /* Тонкая полоска над таббаром */
-    left: 0;
-    right: 0;
-    height: 12px;
-
-    border-top-left-radius: inherit;
-    border-top-right-radius: inherit;
-
-    background: radial-gradient(
-        ellipse at top,
-        rgba(255,255,255,0.18) 0%,   /* яркое начало */
-        rgba(255,255,255,0.06) 40%,  /* мягкое рассеивание */
-        transparent 100%
-    );
-
-    pointer-events: none;
-}
 
 .nav-item {
   flex: 1;
