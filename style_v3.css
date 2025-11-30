@@ -578,15 +578,37 @@ html, body {
         gap: 2px;
     }
 }
-#---------------Убрать синюю рамку на иконках и вкладках------------
+/* ==== Удаление полностью синей рамки в Telegram WebApp (Android) ==== */
 * {
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important; 
+    -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
 }
-button, img, .nav-item {
+
+*:focus, 
+*:active, 
+*:focus-visible, 
+*:focus-within {
     outline: none !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
     -webkit-focus-ring-color: transparent !important;
 }
+
+/* Кнопки таббара */
+.nav-item:focus,
+.nav-item:active,
+.nav-item:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Изображения */
+img:focus, 
+img:active, 
+img:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
 
 
 
