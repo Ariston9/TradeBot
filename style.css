@@ -65,7 +65,7 @@ body {
 
 .tab.active {
   color: #ffffff;
-  border-bottom: 2px solid #00c4ff;
+  border-bottom: 2px solid #00ff87;
 }
 
 /* CARDS */
@@ -112,7 +112,7 @@ body {
 }
 
 .buy {
-  color: #4cff93;
+  color: #00ff87;
   text-shadow: 0 0 10px rgba(76, 255, 147, 0.6);
 }
 
@@ -159,7 +159,7 @@ body {
   height: 100%;
   width: 0%;
   border-radius: 10px;
-  background: linear-gradient(90deg, #00ff87, #00c4ff);
+  background: linear-gradient(90deg, #00ff87, #00c853);
   transition: width 0.6s ease-in-out;
 }
 
@@ -174,7 +174,7 @@ body {
   padding: 14px;
   font-size: 16px;
   font-weight: 600;
-  background: linear-gradient(90deg, #00c4ff, #0077ff);
+  background: linear-gradient(90deg, #00ff87, #00c853);
   color: #000;
   cursor: pointer;
   box-shadow: 0 8px 18px rgba(0, 196, 255, 0.25);
