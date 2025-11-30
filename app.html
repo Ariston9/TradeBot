@@ -109,34 +109,49 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    async function updateSignal() {
-      const pair = document.getElementById("pair").value;
-      document.getElementById("signalCard").style.display = "block";
-      document.getElementById("dir").textContent = "⏳ Анализ " + pair + "...";
-
-      const params = new URLSearchParams(window.location.search);
-      const apiBase = params.get("api") || "";
-      const url = `${apiBase}/get_signal?pair=${encodeURIComponent(pair)}`;
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-
-        document.getElementById("dir").textContent =
-          data.dir === "BUY" ? "📈 Покупать" :
-          data.dir === "SELL" ? "🔻 Продавать" : "⚪ Ожидание";
-
-        document.getElementById("prob").textContent = `🎯 Вероятность: ${data.prob}%`;
-        document.getElementById("expiry").textContent =
-          data.expiry ? `⏱ Экспирация: ${data.expiry} мин` : "Сигнал слабый";
-        document.getElementById("price").textContent =
-          data.entry_price ? `💰 Цена входа: ${data.entry_price.toFixed(5)}` : "";
-
-        showChart(pair);
-        loadSignals(pair);
-      } catch (e) {
-        document.getElementById("dir").textContent = "❌ Ошибка загрузки данных.";
-      }
+  async function updateSignal() {
+    const pair = document.getElementById("pair").value;
+    document.getElementById("signalCard").style.display = "block";
+    document.getElementById("dir").textContent = "⏳ Анализ " + pair + "...";
+  
+    const params = new URLSearchParams(window.location.search);
+    const apiBase = params.get("api") || "";
+  
+    if (!apiBase) {
+      document.getElementById("dir").textContent = "❌ Ошибка: параметр api не передан.";
+      return;
     }
+  
+    const url = `${apiBase}/get_signal?pair=${encodeURIComponent(pair)}`;
+  
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+  
+      if (data.error) {
+        document.getElementById("dir").textContent = "⚠️ Рынок закрыт";
+        document.getElementById("prob").textContent = data.error;
+        document.getElementById("expiry").textContent = "";
+        document.getElementById("price").textContent = "";
+        return;
+      }
+  
+      document.getElementById("dir").textContent =
+        data.dir === "BUY" ? "📈 Покупать" :
+        data.dir === "SELL" ? "🔻 Продавать" : "⚪ Сигнал слабый";
+  
+      document.getElementById("prob").textContent = `🎯 Вероятность: ${data.prob}%`;
+      document.getElementById("expiry").textContent = data.expiry ? `⏱ Экспирация: ${data.expiry} мин` : "";
+      document.getElementById("price").textContent = data.entry_price ? `💰 Цена входа: ${data.entry_price}` : "";
+  
+      showChart(pair);
+      loadSignals(pair);
+  
+    } catch (e) {
+      console.error(e);
+      document.getElementById("dir").textContent = "❌ Ошибка загрузки данных.";
+    }
+  }
 
     function showChart(pair) {
       document.getElementById("chart-container").innerHTML = "";
