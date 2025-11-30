@@ -578,5 +578,9 @@ html, body {
         gap: 2px;
     }
 }
+* {
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+}
 
 
