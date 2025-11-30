@@ -38,7 +38,7 @@ def last_signal():
     """
     Возвращает последний сигнал из logs/signals.csv
     """
-    sig = get_last_signal()
+    sig = read_signals_log()
     if sig is None:
         return {"signal": None}
     return {"signal": sig}
