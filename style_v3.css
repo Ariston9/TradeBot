@@ -555,7 +555,7 @@ html, body {
     flex: 1 1 auto;              /* <- ГЛАВНОЕ */
     overflow-y: auto;            /* скролл включён */
     -webkit-overflow-scrolling: touch; /* iphone+andorid */
-    padding: 10px 10px 140px;     /* небольшой внутренний отступ */
+    padding: 10px 10px 120px;     /* небольшой внутренний отступ */
 /* <div style="height:1200px;background:rgba(255,255,255,0.1);margin-top:20px;"></div> */
 
 }
