@@ -15,13 +15,13 @@
       <div class="header-logo"></div>
       <div class="header-text">
         <div class="header-title">Trade Assistant</div>
-        <div class="header-subtitle">Сигналы с твоего бота + график TradingView</div>
+        <div class="header-subtitle">Надежный помошник в трейдинге</div>
       </div>
     </div>
 
     <div class="header-right">
       <div class="api-pill" id="statusPill">API: неизвестно</div>
-      <label class="pair-label" for="pair">Пара</label>
+      <label class="pair-label" for="pair">Валютная пара</label>
       <select id="pair" class="pair-select">
         <!-- EUR pairs -->
         <option value="EURUSD" data-api="EUR/USD">🇪🇺 EUR/USD 🇺🇸</option>
@@ -274,9 +274,9 @@
       const data = await res.json();
       setLoading(false);
 
-      if (data.error) {
+      if (!data || data.error || !data.dir) {
         document.getElementById("signal-title").textContent = "⚠️ Рынок закрыт";
-        document.getElementById("prob").textContent = data.error;
+        document.getElementById("prob").textContent = data?.error || "Нет данных для анализа";
         showChart(tvSymbol);
         return;
       }
@@ -285,10 +285,10 @@
       dirEl.classList.remove("buy", "sell");
 
       if (data.dir === "BUY") {
-        dirEl.textContent = "📈 Покупать";
+        dirEl.textContent = "Покупать 🟢";
         dirEl.classList.add("buy");
       } else if (data.dir === "SELL") {
-        dirEl.textContent = "🔻 Продавать";
+        dirEl.textContent = "Продавать 🔴";
         dirEl.classList.add("sell");
       } else {
         dirEl.textContent = "⚪ Сигнал слабый";
