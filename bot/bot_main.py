@@ -74,7 +74,7 @@ def kb_main(pair_selected: str | None) -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 text="📱 Открыть панель",
                 web_app=WebAppInfo(
-                    url=f"https://ariston9.github.io/TradeBot/app.html?api={API_URL}"
+                    url=f"https://ariston9.github.io/TradeBot/app_v3.html?api={API_URL}"
                 ),
             ),
         ]
