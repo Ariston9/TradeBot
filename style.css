@@ -1,189 +1,51 @@
-* {
-  box-sizing: border-box;
-}
-
 body {
-  margin: 0;
-  padding: 0;
-  background: #05070b;
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
-  color: #e3e6eb;
+  background: #0f172a;
+  color: #f8fafc;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 12px;
 }
 
-.page {
-  max-width: 480px;
-  margin: 0 auto;
-}
-
-/* HEADER */
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 16px;
-  background: #080b10;
-  border-bottom: 1px solid #141924;
-}
-
-.logo-emoji {
-  font-size: 20px;
-  margin-right: 6px;
-}
-
-.logo-text {
-  font-weight: 600;
+h2 {
+  margin: 0 0 10px 0;
   font-size: 18px;
 }
 
-.pair-select {
-  background: #151924;
-  border: 1px solid #262b38;
-  color: #fff;
-  border-radius: 10px;
-  padding: 8px 10px;
-  font-size: 15px;
-}
-
-/* TABS */
-
-.tabs {
-  display: flex;
-  border-bottom: 1px solid #141924;
-}
-
-.tab {
-  flex: 1;
-  padding: 10px 0;
-  text-align: center;
-  background: #070a0f;
-  color: #9ca3b0;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.tab.active {
-  color: #ffffff;
-  border-bottom: 2px solid #00ff87;
-}
-
-/* CARDS */
+/* CARD */
 
 .card {
-  margin: 14px;
-  padding: 14px 14px 16px;
-  background: #0b0f18;
-  border-radius: 14px;
-  border: 1px solid #141924;
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
 }
 
-.card-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #9ca3b0;
-  margin-bottom: 8px;
-}
+/* FORM */
 
-/* CHART */
-
-#chartContainer {
+select,
+button {
   width: 100%;
-  height: 280px;
-}
-
-/* SIGNAL */
-
-.signal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.pair-label {
-  font-size: 14px;
-  color: #9ca3b0;
-}
-
-.signal-dir {
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.buy {
-  color: #00ff87;
-  text-shadow: 0 0 10px rgba(76, 255, 147, 0.6);
-}
-
-.sell {
-  color: #ff5b7a;
-  text-shadow: 0 0 10px rgba(255, 91, 122, 0.6);
-}
-
-.wait {
-  color: #e3e6eb;
-}
-
-.signal-row {
-  display: flex;
-  justify-content: space-between;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
   margin-top: 6px;
-  font-size: 14px;
-}
-
-.signal-label {
-  color: #9ca3b0;
-}
-
-.signal-value {
-  font-weight: 500;
-}
-
-.reason-row {
-  margin-top: 10px;
-}
-
-/* PROGRESS BAR */
-
-.progress-bar-container {
-  width: 100%;
-  height: 10px;
-  border-radius: 10px;
-  background: #131722;
-  margin-top: 8px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  width: 0%;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #00ff87, #00c853);
-  transition: width 0.6s ease-in-out;
+  font-size: 15px;
 }
 
 /* BUTTON */
 
-.btn {
-  display: block;
-  width: calc(100% - 28px);
-  margin: 0 14px 16px;
-  border-radius: 12px;
-  border: none;
-  padding: 14px;
-  font-size: 16px;
-  font-weight: 600;
+button {
   background: linear-gradient(90deg, #00ff87, #00c853);
-  color: #000;
+  color: white;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(0, 196, 255, 0.25);
+  box-shadow: 0 6px 14px rgba(0, 200, 83, 0.35);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.btn:active {
+button:active {
   transform: scale(0.96);
-  box-shadow: 0 4px 10px rgba(0, 196, 255, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 200, 83, 0.25);
 }
 
 /* BUTTON LOADING */
@@ -204,8 +66,8 @@ body {
   margin-top: -11px;
   margin-left: -11px;
   border-radius: 50%;
-  border: 3px solid rgba(0, 0, 0, 0.25);
-  border-top-color: #000;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #ffffff;
   animation: spin 0.8s linear infinite;
 }
 
@@ -215,14 +77,83 @@ body {
   }
 }
 
-/* SKELETON LOADER */
+/* SIGNAL TEXT */
+
+#dir {
+  margin: 0 0 6px 0;
+}
+
+#prob,
+#expiry,
+#price {
+  margin: 4px 0;
+}
+
+/* BUY/SELL COLORS */
+
+.buy {
+  color: #00ff87;
+  text-shadow: 0 0 10px rgba(0, 255, 135, 0.6);
+}
+
+.sell {
+  color: #fb7185;
+  text-shadow: 0 0 10px rgba(251, 113, 133, 0.6);
+}
+
+/* PROGRESS BAR */
+
+.progress-bar-container {
+  width: 100%;
+  height: 10px;
+  border-radius: 8px;
+  background: #020617;
+  margin: 6px 0 8px 0;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #00ff87, #00c853);
+  transition: width 0.6s ease-in-out;
+}
+
+/* CHART */
+
+#chart-container {
+  margin-top: 12px;
+  height: 400px;
+}
+
+/* HISTORY SIGNALS */
+
+#signals {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.signal {
+  margin: 4px 0;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* SKELETON ANIMATION */
 
 .skeleton {
-  background: linear-gradient(90deg, #171b26 0px, #222735 40px, #171b26 80px);
+  background: linear-gradient(90deg, #1f2937 0px, #374151 40px, #1f2937 80px);
   background-size: 600%;
   border-radius: 6px;
   color: transparent !important;
-  animation: shimmer 1.4s infinite;
+  animation: shimmer 1.3s infinite;
 }
 
 @keyframes shimmer {
@@ -247,33 +178,4 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* HISTORY TABLE */
-
-.history-status {
-  font-size: 13px;
-  color: #9ca3b0;
-  margin-bottom: 8px;
-}
-
-.history-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.history-table th,
-.history-table td {
-  padding: 6px 4px;
-  border-bottom: 1px solid #141924;
-}
-
-.history-table th {
-  text-align: left;
-  color: #9ca3b0;
-}
-
-.history-table tr:last-child td {
-  border-bottom: none;
 }
