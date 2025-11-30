@@ -511,36 +511,33 @@ html, body {
     margin: 0;
     padding: 0;
     height: 100%;
-    overflow: hidden !important; /* обрезаем скролл у body */
+    overflow: hidden; /* Телеграм требует! */
 }
 
-/* Главный контейнер */
+/* Контейнер всего приложения */
 .app {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    overflow: hidden;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
-/* Телеграм-хедер ≈ 52px, твой хедер ≈ 76px */
-:root {
-    --tg-header: 52px;
-    --app-header: 76px;
-    --bottom-nav: 64px;
+/* Высота хедера */
+.app-header {
+    height: 76px;
+    flex-shrink: 0;
 }
 
-/* Главная скроллируемая зона */
+/* Нижняя панель */
+.bottom-nav {
+    height: 64px;
+    flex-shrink: 0;
+}
+
+/* Главная зона — ЕДИНСТВЕННАЯ, которая должна скроллиться */
 .app-main {
-    position: absolute;
-    top: calc(var(--tg-header) + var(--app-header));
-    left: 0;
-    right: 0;
-    bottom: calc(var(--bottom-nav) + 80px); /* кнопка + таббар */
-    padding: 0 10px 20px;
-    overflow-y: scroll !important;
-    -webkit-overflow-scrolling: touch !important;
+    flex: 1 1 auto;              /* <- ГЛАВНОЕ */
+    overflow-y: auto;            /* скролл включён */
+    -webkit-overflow-scrolling: touch; /* iphone+andorid */
+    padding: 10px 10px 20px;     /* небольшой внутренний отступ */
 }
