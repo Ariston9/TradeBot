@@ -281,7 +281,7 @@ body {
 }
 
 .chart-container {
-  height: 360px;
+  height: 500px;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(30, 64, 175, 0.8);
@@ -540,4 +540,13 @@ html, body {
     overflow-y: auto;            /* скролл включён */
     -webkit-overflow-scrolling: touch; /* iphone+andorid */
     padding: 10px 10px 20px;     /* небольшой внутренний отступ */
+<div style="height:1200px;background:rgba(255,255,255,0.1);margin-top:20px;"></div>
+
 }
+@media (min-width: 600px) {
+  .floating-signal-btn {
+      transform: translateX(-50%) scale(0.8); /* уменьшить кнопку */
+      bottom: 60px;
+  }
+}
+
