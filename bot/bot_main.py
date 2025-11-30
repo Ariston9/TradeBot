@@ -314,16 +314,16 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    
     # запускаем Telegram-бота в отдельном потоке
     def start_bot():
-        asyncio.run(main())
+            # запускаем WebAPI (FastAPI)
+        uvicorn.run(
+            "bot.api.server:app",
+            host="0.0.0.0",
+            port=8000
+        )
 
-    threading.Thread(target=start_bot, daemon=True).start()
-
-    # запускаем WebAPI (FastAPI)
-    uvicorn.run(
-        "bot.api.server:app",
-        host="0.0.0.0",
-        port=8000
-    )
+threading.Thread(target=start_bot, daemon=True).start()
+   
+# --- Telegram бот работает в главном потоке ---
+asyncio.run(main())
