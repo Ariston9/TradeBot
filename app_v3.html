@@ -67,9 +67,6 @@
             <div id="signal-title" class="signal-direction">⏳ Ожидание сигнала...</div>
             <div id="prob" class="signal-prob muted">Нажми «Получить сигнал»</div>
           </div>
-          <button id="signalButton" class="btn-primary" onclick="updateSignal()">
-            🔄 Получить сигнал
-          </button>
         </div>
 
         <div class="signal-extra-row">
@@ -436,6 +433,9 @@
     loadSignals(tvSymbol);
   });
 </script>
+<button id="signalButton" class="floating-signal-btn" onclick="updateSignal()">
+  🔄 Получить сигнал
+</button>
 
 </body>
 </html>
