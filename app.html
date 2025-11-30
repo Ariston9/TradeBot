@@ -115,8 +115,7 @@
       document.getElementById("dir").textContent = "⏳ Анализ " + pair + "...";
 
       const params = new URLSearchParams(window.location.search);
-      const apiBase = params.get("https://ariston9.github.io/TradeBot/app.html?api=https://tradebot-production.up.railway.app
-") || "";
+      const apiBase = params.get("api") || "";
       const url = `${apiBase}/get_signal?pair=${encodeURIComponent(pair)}`;
       try {
         const res = await fetch(url);
