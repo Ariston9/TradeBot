@@ -2,76 +2,149 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  <title>TradeBot WebApp v3</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trade Assistant</title>
-
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style_v3.css" />
 </head>
 <body>
-  <h2>📊 Trade Assistant</h2>
+  <div class="app">
+    <header class="app-header">
+      <div>
+        <h1>📊 Trade Assistant</h1>
+        <p class="subtitle">Сигналы с твоего бота + график TradingView</p>
+      </div>
+      <div class="status-pill" id="statusPill">API: неизвестно</div>
+    </header>
 
-  <div class="card">
-    <label>Выбери валютную пару:</label>
-    <select id="pair">
+    <!-- Блок выбора пары и кнопка -->
+    <section class="card top-card">
+      <div class="pair-row">
+        <div class="pair-select-block">
+          <label for="pair">Выбери валютную пару:</label>
+          <select id="pair">
+            <!-- EUR pairs -->
+            <option value="EURUSD" data-api="EUR/USD">🇪🇺 EUR/USD 🇺🇸</option>
+            <option value="EURGBP" data-api="EUR/GBP">🇪🇺 EUR/GBP 🇬🇧</option>
+            <option value="EURAUD" data-api="EUR/AUD">🇪🇺 EUR/AUD 🇦🇺</option>
+            <option value="EURJPY" data-api="EUR/JPY">🇪🇺 EUR/JPY 🇯🇵</option>
+            <option value="EURCHF" data-api="EUR/CHF">🇪🇺 EUR/CHF 🇨🇭</option>
+            <option value="EURCAD" data-api="EUR/CAD">🇪🇺 EUR/CAD 🇨🇦</option>
 
-      <!-- EUR pairs -->
-      <option value="EURUSD">🇪🇺 EUR/USD 🇺🇸</option>
-      <option value="EURGBP">🇪🇺 EUR/GBP 🇬🇧</option>
-      <option value="EURAUD">🇪🇺 EUR/AUD 🇦🇺</option>
-      <option value="EURJPY">🇪🇺 EUR/JPY 🇯🇵</option>
-      <option value="EURCHF">🇪🇺 EUR/CHF 🇨🇭</option>
-      <option value="EURCAD">🇪🇺 EUR/CAD 🇨🇦</option>
-    
-      <!-- GBP pairs -->
-      <option value="GBPUSD">🇬🇧 GBP/USD 🇺🇸</option>
-      <option value="GBPJPY">🇬🇧 GBP/JPY 🇯🇵</option>
-      <option value="GBPCHF">🇬🇧 GBP/CHF 🇨🇭</option>
-      <option value="GBPAUD">🇬🇧 GBP/AUD 🇦🇺</option>
-      <option value="GBPCAD">🇬🇧 GBP/CAD 🇨🇦</option>
-    
-      <!-- USD pairs -->
-      <option value="USDJPY">🇺🇸 USD/JPY 🇯🇵</option>
-      <option value="USDCAD">🇺🇸 USD/CAD 🇨🇦</option>
-      <option value="USDCHF">🇺🇸 USD/CHF 🇨🇭</option>
-    
-      <!-- AUD pairs -->
-      <option value="AUDUSD">🇦🇺 AUD/USD 🇺🇸</option>
-      <option value="AUDJPY">🇦🇺 AUD/JPY 🇯🇵</option>
-      <option value="AUDCHF">🇦🇺 AUD/CHF 🇨🇭</option>
-      <option value="AUDCAD">🇦🇺 AUD/CAD 🇨🇦</option>
-    
-      <!-- CAD pairs -->
-      <option value="CADJPY">🇨🇦 CAD/JPY 🇯🇵</option>
-      <option value="CADCHF">🇨🇦 CAD/CHF 🇨🇭</option>
-    
-    </select>
+            <!-- GBP pairs -->
+            <option value="GBPUSD" data-api="GBP/USD">🇬🇧 GBP/USD 🇺🇸</option>
+            <option value="GBPJPY" data-api="GBP/JPY">🇬🇧 GBP/JPY 🇯🇵</option>
+            <option value="GBPCHF" data-api="GBP/CHF">🇬🇧 GBP/CHF 🇨🇭</option>
+            <option value="GBPAUD" data-api="GBP/AUD">🇬🇧 GBP/AUD 🇦🇺</option>
+            <option value="GBPCAD" data-api="GBP/CAD">🇬🇧 GBP/CAD 🇨🇦</option>
 
-    <button id="signalButton" onclick="updateSignal()">🔄 Получить сигнал</button>
-  </div>
+            <!-- USD pairs -->
+            <option value="USDJPY" data-api="USD/JPY">🇺🇸 USD/JPY 🇯🇵</option>
+            <option value="USDCAD" data-api="USD/CAD">🇺🇸 USD/CAD 🇨🇦</option>
+            <option value="USDCHF" data-api="USD/CHF">🇺🇸 USD/CHF 🇨🇭</option>
 
-  <div class="card" id="signalCard" style="display:none;">
-    <h3 id="dir"></h3>
-    <p id="prob"></p>
+            <!-- AUD pairs -->
+            <option value="AUDUSD" data-api="AUD/USD">🇦🇺 AUD/USD 🇺🇸</option>
+            <option value="AUDJPY" data-api="AUD/JPY">🇦🇺 AUD/JPY 🇯🇵</option>
+            <option value="AUDCHF" data-api="AUD/CHF">🇦🇺 AUD/CHF 🇨🇭</option>
+            <option value="AUDCAD" data-api="AUD/CAD">🇦🇺 AUD/CAD 🇨🇦</option>
 
-    <div class="progress-bar-container">
-      <div id="progressBar" class="progress-bar"></div>
+            <!-- CAD pairs -->
+            <option value="CADJPY" data-api="CAD/JPY">🇨🇦 CAD/JPY 🇯🇵</option>
+            <option value="CADCHF" data-api="CAD/CHF">🇨🇦 CAD/CHF 🇨🇭</option>
+          </select>
+        </div>
+
+        <button id="signalButton" class="btn-primary" onclick="updateSignal()">
+          🔄 Получить сигнал
+        </button>
+      </div>
+
+      <p class="hint">
+        Сегодня выходной? Всё равно можешь проверять историю сигналов и поведение стратегии на графике.
+      </p>
+    </section>
+
+    <!-- Табы -->
+    <div class="tabs">
+      <button class="tab-button active" data-tab="signal" onclick="switchTab('signal')">
+        ⚡ Сигнал
+      </button>
+      <button class="tab-button" data-tab="history" onclick="switchTab('history')">
+        📜 История сделок
+      </button>
     </div>
 
-    <p id="expiry"></p>
-    <p id="price"></p>
+    <!-- Контент вкладки Сигнал -->
+    <section id="tab-signal" class="tab-content active">
+      <div class="card" id="signalCard" style="display:none;">
+        <h3 id="dir" class="signal-direction"></h3>
+
+        <p id="prob" class="signal-prob"></p>
+
+        <div class="progress-bar-container">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+
+        <p id="expiry" class="signal-extra"></p>
+        <p id="price" class="signal-extra"></p>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-header">
+          <span id="chartTitle">График TradingView</span>
+        </div>
+        <div id="chart-container" class="chart-container"></div>
+      </div>
+    </section>
+
+    <!-- Контент вкладки История -->
+    <section id="tab-history" class="tab-content">
+      <div class="card">
+        <h3>📜 История сигналов по паре</h3>
+        <div id="signals" class="signals-list">
+          <p class="muted">Нажми «Получить сигнал», чтобы загрузить историю.</p>
+        </div>
+      </div>
+    </section>
   </div>
 
-  <div id="chart-container"></div>
-
-  <div id="signals"></div>
-
+  <!-- Telegram & TradingView -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <script src="https://s3.tradingview.com/tv.js" type="text/javascript"></script>
+
   <script>
     const tg = window.Telegram.WebApp;
     if (tg && tg.expand) tg.expand();
 
     let tvWidget = null;
+
+    function getApiBase() {
+      const params = new URLSearchParams(window.location.search);
+      const apiFromParam = params.get("api");
+      const apiBase = apiFromParam || "https://tradebot-production-74c0.up.railway.app";
+      const pill = document.getElementById("statusPill");
+      pill.textContent = apiFromParam ? "API: из параметра" : "API: Railway по умолчанию";
+      pill.classList.add(apiFromParam ? "status-ok" : "status-warn");
+      return apiBase;
+    }
+
+    const API_BASE = getApiBase();
+
+    function switchTab(tab) {
+      const buttons = document.querySelectorAll(".tab-button");
+      const contents = document.querySelectorAll(".tab-content");
+
+      buttons.forEach(btn => {
+        if (btn.dataset.tab === tab) btn.classList.add("active");
+        else btn.classList.remove("active");
+      });
+
+      contents.forEach(block => {
+        block.id === "tab-" + tab
+          ? block.classList.add("active")
+          : block.classList.remove("active");
+      });
+    }
 
     function setLoading(isLoading) {
       const btn = document.getElementById("signalButton");
@@ -79,6 +152,7 @@
 
       if (isLoading) {
         btn.classList.add("btn-loading");
+        btn.textContent = "⏳ Анализ...";
         ids.forEach(id => {
           const el = document.getElementById(id);
           el.classList.add("skeleton");
@@ -87,6 +161,7 @@
         document.getElementById("progressBar").style.width = "0%";
       } else {
         btn.classList.remove("btn-loading");
+        btn.textContent = "🔄 Получить сигнал";
         ids.forEach(id => {
           const el = document.getElementById(id);
           el.classList.remove("skeleton");
@@ -96,23 +171,25 @@
     }
 
     async function updateSignal() {
-      const pair = document.getElementById("pair").value;
-      showChart(pair)
+      const select = document.getElementById("pair");
+      const opt = select.options[select.selectedIndex];
+      const tvSymbol = opt.value;          // EURUSD
+      const pairForApi = opt.dataset.api;  // EUR/USD
+
       document.getElementById("signalCard").style.display = "block";
-      document.getElementById("dir").textContent = "⏳ Анализ " + pair + "...";
+      document.getElementById("dir").textContent = "⏳ Анализ " + pairForApi + "...";
+      document.getElementById("chartTitle").textContent = "График: " + pairForApi;
 
       setLoading(true);
+      switchTab("signal");
 
-      const params = new URLSearchParams(window.location.search);
-      const apiBase = params.get("api") || "https://tradebot-production-74c0.up.railway.app";
-
-      if (!apiBase) {
+      if (!API_BASE) {
         setLoading(false);
-        document.getElementById("dir").textContent = "❌ Ошибка: параметр api не передан.";
+        document.getElementById("dir").textContent = "❌ Ошибка: API не задан.";
         return;
       }
 
-      const url = `${apiBase}/get_signal?pair=${encodeURIComponent(pair)}`;
+      const url = `${API_BASE}/get_signal?pair=${encodeURIComponent(pairForApi)}`;
 
       try {
         const res = await fetch(url);
@@ -126,27 +203,29 @@
           document.getElementById("expiry").textContent = "";
           document.getElementById("price").textContent = "";
           document.getElementById("progressBar").style.width = "0%";
+          showChart(tvSymbol);
           return;
         }
 
         // Направление
+        const dirEl = document.getElementById("dir");
         if (data.dir === "BUY") {
-          document.getElementById("dir").textContent = "📈 Покупать";
-          document.getElementById("dir").classList.add("buy");
-          document.getElementById("dir").classList.remove("sell");
+          dirEl.textContent = "📈 Покупать";
+          dirEl.classList.add("buy");
+          dirEl.classList.remove("sell");
         } else if (data.dir === "SELL") {
-          document.getElementById("dir").textContent = "🔻 Продавать";
-          document.getElementById("dir").classList.add("sell");
-          document.getElementById("dir").classList.remove("buy");
+          dirEl.textContent = "🔻 Продавать";
+          dirEl.classList.add("sell");
+          dirEl.classList.remove("buy");
         } else {
-          document.getElementById("dir").textContent = "⚪ Сигнал слабый";
-          document.getElementById("dir").classList.remove("buy", "sell");
+          dirEl.textContent = "⚪ Сигнал слабый";
+          dirEl.classList.remove("buy", "sell");
         }
 
         // Вероятность + прогресс-бар
         const prob = data.prob || 0;
         document.getElementById("prob").textContent = `🎯 Вероятность: ${prob}%`;
-        document.getElementById("progressBar").style.width = prob + "%";
+        document.getElementById("progressBar").style.width = Math.max(0, Math.min(100, prob)) + "%";
 
         // Экспирация и цена
         document.getElementById("expiry").textContent =
@@ -154,8 +233,8 @@
         document.getElementById("price").textContent =
           data.entry_price ? `💰 Цена входа: ${data.entry_price}` : "";
 
-        showChart(pair, data.entry_price, data.dir);
-        loadSignals(pair);
+        showChart(tvSymbol, data.entry_price, data.dir);
+        loadSignals(tvSymbol);
 
       } catch (e) {
         console.error(e);
@@ -164,14 +243,12 @@
       }
     }
 
-    function showChart(pair, entryPrice = null, dir = null) {
+    function showChart(tvSymbol, entryPrice = null, dir = null) {
       document.getElementById("chart-container").innerHTML = "";
-
-      const symbol = pair.replace("/", "");
 
       tvWidget = new TradingView.widget({
         autosize: true,
-        symbol: "FX:" + symbol,
+        symbol: "FX:" + tvSymbol,
         interval: "1",
         timezone: "Etc/UTC",
         theme: "dark",
@@ -196,26 +273,46 @@
       }
     }
 
-    async function loadSignals(pair) {
-      const params = new URLSearchParams(window.location.search);
-      const apiBase = params.get("api") || "";
-      if (!apiBase) return;
+    async function loadSignals(tvSymbol) {
+      if (!API_BASE) return;
 
       try {
-        const res = await fetch(`${apiBase}/signals?symbol=${pair.replace("/", "")}`);
+        const res = await fetch(`${API_BASE}/signals?symbol=${tvSymbol}`);
         const data = await res.json();
         const div = document.getElementById("signals");
-        div.innerHTML = "<h4>📈 История сигналов:</h4>";
-        (data || []).slice(-10).reverse().forEach(s => {
+        div.innerHTML = "";
+
+        const list = Array.isArray(data) ? data.slice(-20).reverse() : [];
+
+        if (!list.length) {
+          div.innerHTML = "<p class='muted'>Пока нет сигналов по этой паре.</p>";
+          return;
+        }
+
+        list.forEach(s => {
           const el = document.createElement("div");
-          el.className = "signal " + (s.direction === "BUY" ? "buy" : "sell");
-          el.textContent = `${s.time} → ${s.direction} (${s.reason || ""})`;
+          el.className = "signal-row " + (s.direction === "BUY" ? "buy" : "sell");
+          el.innerHTML = `
+            <div class="signal-main">
+              <span class="signal-time">${s.time || ""}</span>
+              <span class="signal-dir">${s.direction}</span>
+            </div>
+            <div class="signal-reason">${s.reason || ""}</div>
+          `;
           div.appendChild(el);
         });
       } catch (e) {
         console.error(e);
       }
     }
+
+    // При первом открытии сразу рисуем график по первой паре
+    window.addEventListener("load", () => {
+      const select = document.getElementById("pair");
+      const opt = select.options[select.selectedIndex];
+      document.getElementById("chartTitle").textContent = "График: " + opt.dataset.api;
+      showChart(opt.value);
+    });
   </script>
 </body>
 </html>
