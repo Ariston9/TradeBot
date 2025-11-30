@@ -96,7 +96,7 @@
       setLoading(true);
 
       const params = new URLSearchParams(window.location.search);
-      const apiBase = params.get("api") || "";
+      const apiBase = params.get("api") || "https://tradebot-production-74c0.up.railway.app";
 
       if (!apiBase) {
         setLoading(false);
