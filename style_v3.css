@@ -578,9 +578,15 @@ html, body {
         gap: 2px;
     }
 }
+#---------------Убрать синюю рамку на иконках и вкладках------------
 * {
     -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
+    outline: none !important; 
 }
+button, img, .nav-item {
+    outline: none !important;
+    -webkit-focus-ring-color: transparent !important;
+}
+
 
 
