@@ -1,8 +1,12 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
 from bot.analyzer import analyze_pair_for_user
-from .config import PAIRS
-from .logger import get_last_signal
+from bot.config import PAIRS
+from bot.logger import read_signals_log
 
 api = FastAPI(title="TradeBot API")
 
