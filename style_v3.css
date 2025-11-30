@@ -501,9 +501,13 @@ body {
 .nav-icon {
     width: 22px;
     height: 22px;
+    display: block;              /* ключевой момент → выравнивает SVG */
+    object-fit: contain;         /* чтобы не растягивались */
+    margin-bottom: 1px;          /* лёгкая коррекция */
     opacity: 0.7;
     transition: opacity 0.2s ease;
 }
+
 
 .nav-item.active .nav-icon {
     opacity: 1;
@@ -561,4 +565,17 @@ html, body {
       bottom: 50px;
   }
 }
+@media (max-width: 600px) {
+    .nav-icon {
+        width: 20px;
+        height: 20px;
+        margin-bottom: 0;
+    }
+    .nav-item {
+        padding-top: 4px;
+        padding-bottom: 2px;
+        gap: 2px;
+    }
+}
+
 
