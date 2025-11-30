@@ -507,9 +507,13 @@ body {
 }
 
 /* Адаптив */
+/* === FIX: Telegram WebApp Покрутка === */
+
 html, body {
+    margin: 0;
+    padding: 0;
     height: 100%;
-    overflow: hidden; /* telegram-friendly */
+    overflow: hidden; /* Telegram требует скрыть прокрутку у body */
 }
 
 .app {
@@ -518,14 +522,13 @@ html, body {
     flex-direction: column;
 }
 
-/* Главная прокручиваемая зона */
+/* Главная скроллируемая зона */
 .app-main {
     flex: 1 1 auto;
-    margin-top: 76px; /* высота хедера */
-    padding: 0 10px 90px; /* низ — место под таббар */
-    height: calc(100vh - 76px - 64px); /* хедер + таббар */
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    margin-top: 76px; /* Высота хедера */
+    padding: 0 10px 90px; /* Низ = под кнопку + таббар */
+    height: calc(100vh - 76px - 64px); /* Вся высота минус хедер и таббар */
+    overflow-y: auto; /* Включить скролл */
+    -webkit-overflow-scrolling: touch; /* Для Android */
     scroll-behavior: smooth;
 }
-
