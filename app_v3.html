@@ -12,7 +12,7 @@
   <!-- ======= ХЕДЕР (фиксированный) ======= -->
   <header class="app-header">
     <div class="header-left">
-      <div class="header-logo">📊</div>
+      <div class="header-logo"></div>
       <div class="header-text">
         <div class="header-title">Trade Assistant</div>
         <div class="header-subtitle">Сигналы с твоего бота + график TradingView</div>
@@ -171,19 +171,19 @@
   <!-- ======= НИЖНЯЯ НАВИГАЦИЯ (Таббар Bybit) ======= -->
   <nav class="bottom-nav">
     <button class="nav-item active" data-tab="signal" onclick="switchTab('signal')">
-      <span class="nav-icon">⚡</span>
+      <img class="nav-icon" src="icons/Signal.svg" />
       <span class="nav-label">Сигнал</span>
     </button>
     <button class="nav-item" data-tab="history" onclick="switchTab('history')">
-      <span class="nav-icon">📜</span>
+      <img class="nav-icon" src="icons/History.svg" />
       <span class="nav-label">История</span>
     </button>
     <button class="nav-item" data-tab="stats" onclick="switchTab('stats')">
-      <span class="nav-icon">📊</span>
+      <img class="nav-icon" src="icons/Statistics.svg" />
       <span class="nav-label">Статистика</span>
     </button>
     <button class="nav-item" data-tab="autoscan" onclick="switchTab('autoscan')">
-      <span class="nav-icon">🔄</span>
+      <img class="nav-icon" src="icons/Autoscan.svg" />
       <span class="nav-label">Автоскан</span>
     </button>
   </nav>
@@ -252,7 +252,7 @@
       btn.textContent = "⏳ Анализ...";
     } else {
       btn.classList.remove("btn-loading");
-      btn.textContent = "🔄 Получить сигнал";
+      btn.textContent = "Получить сигнал";
     }
   }
 
