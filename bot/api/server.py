@@ -1,3 +1,4 @@
+# bot/api/server.py
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -8,19 +9,29 @@ from bot.analyzer import analyze_pair_for_user
 from bot.config import PAIRS
 from bot.logger import read_signals_log
 
-api = FastAPI(title="TradeBot API")
+
+app = FastAPI(title="TradeBot API")
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class PairRequest(BaseModel):
     pair: str
 
 
-@api.get("/status")
-def status():
-    return {"status": "ok", "pairs": PAIRS}
+@app.get("/pairs")
+def get_pairs():
+    return {"pairs": PAIRS}
 
 
-@api.post("/analyze")
+@app.post("/analyze")
 async def api_analyze(req: PairRequest):
     """
     Анализ валютной пары через REST API для WebApp.
@@ -28,18 +39,15 @@ async def api_analyze(req: PairRequest):
     res, err = await analyze_pair_for_user(0, req.pair)
 
     if err:
-        return {"error": err}
+        return JSONResponse({"error": err}, status_code=400)
 
-    return res
+    return JSONResponse(res)
 
 
-@api.get("/last_signal")
-def last_signal():
+@app.get("/signals")
+def get_signals(symbol: str):
     """
-    Возвращает последний сигнал из logs/signals.csv
+    История сигналов (symbol: EURUSD)
     """
-    sig = read_signals_log()
-    if sig is None:
-        return {"signal": None}
-    return {"signal": sig}
-
+    rows = read_signals_log(symbol)
+    return JSONResponse(rows)
