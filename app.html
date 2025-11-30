@@ -2,340 +2,212 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Trade Assistant WebApp</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trade Assistant</title>
 
-  <!-- Стили -->
   <link rel="stylesheet" href="style.css" />
-
-  <!-- TradingView -->
-  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
-<div class="page">
+  <h2>📊 Trade Assistant</h2>
 
-  <!-- HEADER -->
-  <header class="header">
-    <div class="header-left">
-      <span class="logo-emoji">📊</span>
-      <span class="logo-text">Trade Assistant</span>
+  <div class="card">
+    <label>Выбери валютную пару:</label>
+    <select id="pair">
+      <option>🇪🇺 EUR/USD 🇺🇸</option>
+      <option>🇪🇺 EUR/GBP 🇬🇧</option>
+      <option>🇪🇺 EUR/AUD 🇦🇺</option>
+      <option>🇪🇺 EUR/JPY 🇯🇵</option>
+      <option>🇪🇺 EUR/CHF 🇨🇭</option>
+      <option>🇪🇺 EUR/CAD 🇨🇦</option>
+
+      <option>🇬🇧 GBP/USD 🇺🇸</option>
+      <option>🇬🇧 GBP/JPY 🇯🇵</option>
+      <option>🇬🇧 GBP/CHF 🇨🇭</option>
+      <option>🇬🇧 GBP/AUD 🇦🇺</option>
+      <option>🇬🇧 GBP/CAD 🇨🇦</option>
+
+      <option>🇺🇸 USD/JPY 🇯🇵</option>
+      <option>🇺🇸 USD/CAD 🇨🇦</option>
+      <option>🇺🇸 USD/CHF 🇨🇭</option>
+
+      <option>🇦🇺 AUD/USD 🇺🇸</option>
+      <option>🇦🇺 AUD/JPY 🇯🇵</option>
+      <option>🇦🇺 AUD/CHF 🇨🇭</option>
+      <option>🇦🇺 AUD/CAD 🇨🇦</option>
+
+      <option>🇨🇦 CAD/JPY 🇯🇵</option>
+      <option>🇨🇦 CAD/CHF 🇨🇭</option>
+      <option>🇳🇿 NZD/USD 🇺🇸</option>
+    </select>
+    <button id="signalButton" onclick="updateSignal()">🔄 Получить сигнал</button>
+  </div>
+
+  <div class="card" id="signalCard" style="display:none;">
+    <h3 id="dir"></h3>
+    <p id="prob"></p>
+
+    <div class="progress-bar-container">
+      <div id="progressBar" class="progress-bar"></div>
     </div>
-    <div class="header-right">
-      <select id="pairSelect" class="pair-select"></select>
-    </div>
-  </header>
 
-  <!-- TABS -->
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('signalTab', this)">Сигнал</button>
-    <button class="tab" onclick="switchTab('historyTab', this)">История сделок</button>
+    <p id="expiry"></p>
+    <p id="price"></p>
   </div>
 
-  <!-- SIGNAL TAB -->
-  <div id="signalTab">
+  <div id="chart-container"></div>
 
-    <!-- CHART -->
-    <section class="card" id="chartCard">
-      <div class="card-title">График TradingView</div>
-      <div id="chartContainer"></div>
-    </section>
+  <div id="signals"></div>
 
-    <!-- SIGNAL CARD -->
-    <section class="card" id="signalCard">
-      <div class="signal-header">
-        <div class="pair-label" id="pairLabel">–</div>
-        <div class="signal-dir" id="signalType">⏳ Ожидание сигнала...</div>
-      </div>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <script>
+    const tg = window.Telegram.WebApp;
+    if (tg && tg.expand) tg.expand();
 
-      <div class="signal-row">
-        <span class="signal-label">Вероятность:</span>
-        <span class="signal-value" id="signalProb">–</span>
-      </div>
+    let tvWidget = null;
 
-      <div class="progress-bar-container">
-        <div id="progressBar" class="progress-bar"></div>
-      </div>
+    function setLoading(isLoading) {
+      const btn = document.getElementById("signalButton");
+      const ids = ["dir", "prob", "expiry", "price"];
 
-      <div class="signal-row">
-        <span class="signal-label">Цена входа:</span>
-        <span class="signal-value" id="signalPrice">–</span>
-      </div>
-
-      <div class="signal-row">
-        <span class="signal-label">Экспирация:</span>
-        <span class="signal-value" id="signalExpiry">–</span>
-      </div>
-
-      <div class="signal-row reason-row">
-        <span class="signal-label">Комментарий:</span>
-        <span class="signal-value" id="signalReason">–</span>
-      </div>
-    </section>
-
-    <!-- BUTTON -->
-    <button id="signalButton" class="btn" onclick="updateSignal()">
-      🔄 Получить сигнал
-    </button>
-  </div>
-
-  <!-- HISTORY TAB -->
-  <div id="historyTab" style="display:none;">
-    <section class="card">
-      <div class="card-title">История сигналов</div>
-      <div id="historyStatus" class="history-status">Загрузка...</div>
-      <table class="history-table">
-        <thead>
-        <tr>
-          <th>Время</th>
-          <th>Направление</th>
-          <th>Вероятность</th>
-          <th>Цена</th>
-          <th>Exp</th>
-        </tr>
-        </thead>
-        <tbody id="historyBody"></tbody>
-      </table>
-    </section>
-  </div>
-
-</div>
-
-<script>
-let apiBase = "";
-let tvWidget = null;
-
-// переключение вкладок
-function switchTab(tabId, btn) {
-  document.getElementById("signalTab").style.display =
-    tabId === "signalTab" ? "block" : "none";
-  document.getElementById("historyTab").style.display =
-    tabId === "historyTab" ? "block" : "none";
-
-  document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-
-  if (tabId === "historyTab") {
-    loadHistory();
-  }
-}
-
-function setLoading(isLoading) {
-  const btn = document.getElementById("signalButton");
-  const ids = ["signalType", "signalProb", "signalPrice", "signalExpiry", "signalReason"];
-
-  if (isLoading) {
-    btn.classList.add("btn-loading");
-    ids.forEach(id => {
-      const el = document.getElementById(id);
-      el.classList.add("skeleton");
-      el.classList.remove("fade-in");
-    });
-  } else {
-    btn.classList.remove("btn-loading");
-    ids.forEach(id => {
-      const el = document.getElementById(id);
-      el.classList.remove("skeleton");
-      el.classList.add("fade-in");
-    });
-  }
-}
-
-// загрузка пар
-async function initPairs() {
-  const params = new URLSearchParams(window.location.search);
-  apiBase = params.get("api") || "";
-
-  const select = document.getElementById("pairSelect");
-
-  if (!apiBase) {
-    select.innerHTML = "<option>❌ Нет API</option>";
-    document.getElementById("signalType").textContent =
-      "❌ Ошибка: параметр api не передан в URL.";
-    return;
-  }
-
-  try {
-    const res = await fetch(`${apiBase}/pairs`);
-    const data = await res.json();
-    select.innerHTML = "";
-
-    data.pairs.forEach(p => {
-      const opt = document.createElement("option");
-      opt.value = p;
-      opt.textContent = p;
-      select.appendChild(opt);
-    });
-
-    select.addEventListener("change", () => {
-      const pair = select.value;
-      document.getElementById("pairLabel").textContent = pair;
-      // при смене пары подгружаем пустой график
-      loadChart(pair);
-    });
-
-    // первая пара
-    const defPair = data.pairs[0];
-    select.value = defPair;
-    document.getElementById("pairLabel").textContent = defPair;
-    loadChart(defPair);
-    // сразу запросим первый сигнал
-    updateSignal();
-  } catch (e) {
-    console.error(e);
-    select.innerHTML = "<option>Ошибка загрузки пар</option>";
-    document.getElementById("signalType").textContent =
-      "❌ Ошибка загрузки списка пар.";
-  }
-}
-
-// запрос сигнала
-async function updateSignal() {
-  if (!apiBase) return;
-  const pair = document.getElementById("pairSelect").value || "EUR/USD";
-  document.getElementById("pairLabel").textContent = pair;
-
-  setLoading(true);
-  document.getElementById("progressBar").style.width = "0%";
-
-  try {
-    const url = `${apiBase}/get_signal?pair=${encodeURIComponent(pair)}`;
-    const res = await fetch(url);
-    const data = await res.json();
-
-    setLoading(false);
-
-    if (data.error) {
-      document.getElementById("signalType").textContent = "⚠️ Нет сигнала";
-      document.getElementById("signalProb").textContent = data.error;
-      document.getElementById("signalPrice").textContent = "–";
-      document.getElementById("signalExpiry").textContent = "–";
-      document.getElementById("signalReason").textContent = "–";
-      document.getElementById("progressBar").style.width = "0%";
-      return;
+      if (isLoading) {
+        btn.classList.add("btn-loading");
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          el.classList.add("skeleton");
+          el.classList.remove("fade-in");
+        });
+        document.getElementById("progressBar").style.width = "0%";
+      } else {
+        btn.classList.remove("btn-loading");
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          el.classList.remove("skeleton");
+          el.classList.add("fade-in");
+        });
+      }
     }
 
-    const dirEl = document.getElementById("signalType");
-    dirEl.classList.remove("buy", "sell", "wait");
+    async function updateSignal() {
+      const pair = document.getElementById("pair").value;
+      document.getElementById("signalCard").style.display = "block";
+      document.getElementById("dir").textContent = "⏳ Анализ " + pair + "...";
 
-    if (data.dir === "BUY") {
-      dirEl.textContent = "📈 Покупать";
-      dirEl.classList.add("buy");
-    } else if (data.dir === "SELL") {
-      dirEl.textContent = "🔻 Продавать";
-      dirEl.classList.add("sell");
-    } else {
-      dirEl.textContent = "⏸ Ожидание";
-      dirEl.classList.add("wait");
-    }
+      setLoading(true);
 
-    document.getElementById("signalProb").textContent = `${data.prob}%`;
-    document.getElementById("signalPrice").textContent = data.entry_price || "–";
-    document.getElementById("signalExpiry").textContent =
-      data.expiry ? `${data.expiry} мин` : "–";
-    document.getElementById("signalReason").textContent =
-      data.reason || "—";
+      const params = new URLSearchParams(window.location.search);
+      const apiBase = params.get("api") || "";
 
-    document.getElementById("progressBar").style.width = `${data.prob || 0}%`;
+      if (!apiBase) {
+        setLoading(false);
+        document.getElementById("dir").textContent = "❌ Ошибка: параметр api не передан.";
+        return;
+      }
 
-    // график + стрелка
-    loadChart(pair, data.entry_price, data.dir);
+      const url = `${apiBase}/get_signal?pair=${encodeURIComponent(pair)}`;
 
-  } catch (e) {
-    console.error(e);
-    setLoading(false);
-    document.getElementById("signalType").textContent = "❌ Ошибка загрузки данных.";
-    document.getElementById("signalProb").textContent = "";
-  }
-}
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
 
-// загрузка истории
-async function loadHistory() {
-  if (!apiBase) return;
-  const pair = document.getElementById("pairSelect").value || "EUR/USD";
-  const symbol = pair.replace("/", "");
-  const status = document.getElementById("historyStatus");
-  const body = document.getElementById("historyBody");
+        setLoading(false);
 
-  status.textContent = "Загрузка...";
-  body.innerHTML = "";
-
-  try {
-    const res = await fetch(`${apiBase}/signals?symbol=${symbol}`);
-    const data = await res.json();
-
-    if (!Array.isArray(data) || data.length === 0) {
-      status.textContent = "Нет записей по этой паре.";
-      return;
-    }
-
-    status.textContent = "";
-    body.innerHTML = "";
-
-    data.forEach(row => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row.time || ""}</td>
-        <td>${row.direction || ""}</td>
-        <td>${row.prob || ""}</td>
-        <td>${row.price || ""}</td>
-        <td>${row.expiry || ""}</td>
-      `;
-      body.appendChild(tr);
-    });
-
-  } catch (e) {
-    console.error(e);
-    status.textContent = "Ошибка загрузки истории.";
-  }
-}
-
-// TradingView chart
-function loadChart(pair, entryPrice=null, dir=null) {
-  const containerId = "chartContainer";
-  const symbol = pair.replace("/", "");
-
-  // очищаем контейнер
-  const cont = document.getElementById(containerId);
-  cont.innerHTML = "";
-
-  if (typeof TradingView === "undefined") {
-    cont.textContent = "Ошибка загрузки TradingView.";
-    return;
-  }
-
-  tvWidget = new TradingView.widget({
-    autosize: true,
-    symbol: symbol,
-    interval: "1",
-    container_id: containerId,
-    datafeed: undefined,
-    library_path: "/",
-    locale: "en",
-    theme: "dark",
-    style: "1",
-    hide_top_toolbar: false,
-    hide_legend: true,
-    save_image: false,
-  });
-
-  if (entryPrice && !isNaN(parseFloat(entryPrice))) {
-    tvWidget.onChartReady(function () {
-      const chart = tvWidget.chart();
-      chart.createMultipointShape(
-        [{ price: parseFloat(entryPrice) }],
-        {
-          shape: dir === "SELL" ? "arrow_down" : "arrow_up",
-          text: dir || "",
-          lock: true,
-          disableSelection: true,
+        if (data.error) {
+          document.getElementById("dir").textContent = "⚠️ Рынок закрыт";
+          document.getElementById("prob").textContent = data.error;
+          document.getElementById("expiry").textContent = "";
+          document.getElementById("price").textContent = "";
+          document.getElementById("progressBar").style.width = "0%";
+          return;
         }
-      );
-    });
-  }
-}
 
-// старт
-document.addEventListener("DOMContentLoaded", initPairs);
-</script>
+        // Направление
+        if (data.dir === "BUY") {
+          document.getElementById("dir").textContent = "📈 Покупать";
+          document.getElementById("dir").classList.add("buy");
+          document.getElementById("dir").classList.remove("sell");
+        } else if (data.dir === "SELL") {
+          document.getElementById("dir").textContent = "🔻 Продавать";
+          document.getElementById("dir").classList.add("sell");
+          document.getElementById("dir").classList.remove("buy");
+        } else {
+          document.getElementById("dir").textContent = "⚪ Сигнал слабый";
+          document.getElementById("dir").classList.remove("buy", "sell");
+        }
+
+        // Вероятность + прогресс-бар
+        const prob = data.prob || 0;
+        document.getElementById("prob").textContent = `🎯 Вероятность: ${prob}%`;
+        document.getElementById("progressBar").style.width = prob + "%";
+
+        // Экспирация и цена
+        document.getElementById("expiry").textContent =
+          data.expiry ? `⏱ Экспирация: ${data.expiry} мин` : "";
+        document.getElementById("price").textContent =
+          data.entry_price ? `💰 Цена входа: ${data.entry_price}` : "";
+
+        showChart(pair, data.entry_price, data.dir);
+        loadSignals(pair);
+
+      } catch (e) {
+        console.error(e);
+        setLoading(false);
+        document.getElementById("dir").textContent = "❌ Ошибка загрузки данных.";
+      }
+    }
+
+    function showChart(pair, entryPrice = null, dir = null) {
+      document.getElementById("chart-container").innerHTML = "";
+
+      const symbol = pair.replace("/", "");
+
+      tvWidget = new TradingView.widget({
+        autosize: true,
+        symbol: symbol,
+        interval: "1",
+        timezone: "Etc/UTC",
+        theme: "dark",
+        style: "1",
+        locale: "en",
+        container_id: "chart-container",
+      });
+
+      if (entryPrice && !isNaN(parseFloat(entryPrice))) {
+        tvWidget.onChartReady(function () {
+          const chart = tvWidget.chart();
+          chart.createMultipointShape(
+            [{ price: parseFloat(entryPrice) }],
+            {
+              shape: dir === "SELL" ? "arrow_down" : "arrow_up",
+              text: dir || "",
+              lock: true,
+              disableSelection: true,
+            }
+          );
+        });
+      }
+    }
+
+    async function loadSignals(pair) {
+      const params = new URLSearchParams(window.location.search);
+      const apiBase = params.get("api") || "";
+      if (!apiBase) return;
+
+      try {
+        const res = await fetch(`${apiBase}/signals?symbol=${pair.replace("/", "")}`);
+        const data = await res.json();
+        const div = document.getElementById("signals");
+        div.innerHTML = "<h4>📈 История сигналов:</h4>";
+        (data || []).slice(-10).reverse().forEach(s => {
+          const el = document.createElement("div");
+          el.className = "signal " + (s.direction === "BUY" ? "buy" : "sell");
+          el.textContent = `${s.time} → ${s.direction} (${s.reason || ""})`;
+          div.appendChild(el);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  </script>
 </body>
 </html>
