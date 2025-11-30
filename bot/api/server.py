@@ -51,3 +51,8 @@ def get_signals(symbol: str):
     """
     rows = read_signals_log(symbol)
     return JSONResponse(rows)
+   #---------------- Для вывода сигналов в автоскан--------- 
+# @app.get("/autoscan")
+# def autoscan():
+#     return JSONResponse(LATEST_SIGNALS)
+
