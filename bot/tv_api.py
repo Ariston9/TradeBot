@@ -32,6 +32,7 @@ def fetch_yahoo(pair: str, interval: str, n_bars: int):
         # Standardize datetime
         dt_col = "Datetime" if "Datetime" in df.columns else "Date"
         df["dt_utc"] = pd.to_datetime(df[dt_col], utc=True)
+        df["datetime"] = df["dt_utc"]   # 👈 алиас для analyzer/check_market_open
 
         # unix timestamp
         df["time"] = df["dt_utc"].astype("int64") // 10**9
