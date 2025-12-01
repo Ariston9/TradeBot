@@ -54,7 +54,6 @@ def load_twelvedata(pair: str, interval: str, n_bars: int = 300):
 
         # создаём UNIX timestamp
         df["time"] = df["datetime"].astype("int64") // 10**9
-        df["dt_utc"] = df["datetime"]
 
         # приводим порядок колонок под analyzer
         df = df[["time", "open", "high", "low", "close", "datetime"]]
