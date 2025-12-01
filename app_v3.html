@@ -274,7 +274,7 @@
       const data = await res.json();
       setLoading(false);
 
-      if (!data || data.error || !(data.dir === "BUY" || data.dir === "SELL")) {
+      if (!data || data.error) {
         document.getElementById("signal-title").textContent = "⚠️ Рынок закрыт";
         document.getElementById("prob").textContent = data?.error || "Нет данных для анализа";
         showChart(tvSymbol);
