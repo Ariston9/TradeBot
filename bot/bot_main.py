@@ -313,17 +313,19 @@ async def main() -> None:
     await dp.start_polling(bot)
 
 
-if __name__ == "__main__":
-    # запускаем Telegram-бота в отдельном потоке
-    def start_bot():
-            # запускаем WebAPI (FastAPI)
-        uvicorn.run(
-            "bot.api.server:app",
-            host="0.0.0.0",
-            port=8000
-        )
+def start_api():
+    # запускаем WebAPI (FastAPI)
+    uvicorn.run(
+        "bot.api.server:app",
+        host="0.0.0.0",
+        port=8000,
+    )
 
-threading.Thread(target=start_bot, daemon=True).start()
-   
-# --- Telegram бот работает в главном потоке ---
-asyncio.run(main())
+
+# ВАЖНО: условие сработает и при локальном запуске, и при `python -m bot.bot_main`
+if __name__ in ("__main__", "bot.bot_main"):
+    # поднимаем HTTP API в отдельном потоке
+    threading.Thread(target=start_api, daemon=True).start()
+
+    # --- Telegram-бот работает в главном потоке ---
+    asyncio.run(main())
