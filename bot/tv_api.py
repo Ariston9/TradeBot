@@ -1,37 +1,49 @@
-import requests
+# bot/api/tv_api.py
+import yfinance as yf
 import pandas as pd
-from datetime import datetime, timezone
-
-FINNHUB_KEY = "d4mv0u1r01qsn6g8j7n0d4mv0u1r01qsn6g8j7ng"  # бесплатный API KEY
 
 def get_tv_series(pair: str, interval="1min", n_bars=300):
-    symbol = pair.replace("/", "")  # EURUSD
-    tf_map = {
-        "1min": "1",
-        "5min": "5",
-        "15min": "15",
-    }
-    res = requests.get(
-        "https://finnhub.io/api/v1/forex/candle",
-        params=dict(
-            symbol=f"OANDA:{symbol}",
-            resolution=tf_map[interval],
-            token=FINNHUB_KEY,
-            count=n_bars,
+    """
+    Рабочий и надежный метод загрузки котировок через Yahoo Finance.
+    Поддерживает все пары Forex в формате EUR/USD.
+    """
+    # EUR/USD -> EURUSD=X (формат Yahoo)
+    symbol = pair.replace("/", "") + "=X"
+
+    tf = {
+        "1min": "1m",
+        "5min": "5m",
+        "15min": "15m",
+        "30min": "30m",
+        "1h": "60m",
+    }.get(interval, "1m")
+
+    try:
+        df = yf.download(
+            tickers=symbol,
+            interval=tf,
+            period="7d",
+            progress=False
         )
-    ).json()
 
-    if res.get("s") != "ok":
-        return None, {"error": "Нет свечей от TradingView source"}
+        if df is None or df.empty:
+            return None, {"error": f"⚠️ Нет котировок Yahoo для {pair}"}
 
-    df = pd.DataFrame({
-        "time": res["t"],
-        "open": res["o"],
-        "high": res["h"],
-        "low": res["l"],
-        "close": res["c"],
-    })
-    df["datetime"] = pd.to_datetime(df["time"], unit="s", utc=True)
-    df["dt_utc"] = df["datetime"]
+        # приведение формата
+        df = df.reset_index().rename(columns={
+            "Datetime": "datetime",
+            "Open": "open",
+            "High": "high",
+            "Low": "low",
+            "Close": "close",
+        })
 
-    return df.tail(n_bars), None
+        df["datetime"] = pd.to_datetime(df["datetime"], utc=True)
+        df["dt_utc"] = df["datetime"]
+        df["time"] = df["datetime"].astype("int64") // 10**9
+
+        return df.tail(n_bars), None
+
+    except Exception as e:
+        print("Yahoo error:", e)
+        return None, {"error": "⚠️ Ошибка загрузки Yahoo"}
