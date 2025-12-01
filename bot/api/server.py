@@ -57,16 +57,17 @@ def get_signals(symbol: str):
 #     return JSONResponse(LATEST_SIGNALS)
 
 @app.get("/get_signal")
-async def get_signal(pair: str = Query(..., description="Например: EUR/USD")):
-    """
-    Совместимый с WebApp эндпоинт.
-    Возвращает тот же формат, что и analyze_pair_for_user.
-    """
+async def get_signal(pair: str = Query(...)):
+    # Если пришло EURUSD → превращаем в EUR/USD
+    if "/" not in pair and len(pair) == 6:
+        pair = pair[:3] + "/" + pair[3:]
+
     res, err = await analyze_pair_for_user(0, pair)
 
     if err:
         return JSONResponse({"error": err}, status_code=400)
 
     return JSONResponse(res)
+
 
 
