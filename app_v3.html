@@ -213,7 +213,11 @@
     return apiBase;
   }
 
-  const API_BASE = getApiBase();
+  let API_BASE = getApiBase();
+    // автоматически добавляем пропущенный хвостовой слеш
+  if (API_BASE && !API_BASE.endsWith("/")) {
+      API_BASE += "/";
+  }
   let tvWidget = null;
 
   function getCurrentPair() {
