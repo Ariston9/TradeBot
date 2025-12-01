@@ -240,7 +240,7 @@
     const opt = select.options[select.selectedIndex];
     return {
         tvSymbol: opt.value,   // EURUSD
-        apiPair: opt.value     // тоже EURUSD — без слэша
+        apiPair: opt.dataset.api // EUR/USD ← НУЖНО!
     };
   }
 
