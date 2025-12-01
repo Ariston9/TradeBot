@@ -1,18 +1,37 @@
-from bot.api.twelvedata_api import load_twelvedata
+import requests
+import pandas as pd
+from datetime import datetime, timezone
 
-def get_tv_series(pair: str, interval: str = "1min", n_bars: int = 300):
-    """
-    Главная функция загрузки свечей.
-    Теперь источник — TwelveData API.
-    """
+FINNHUB_KEY = "d4mkro1r01qnt4h0ku4gd4mkro1r01qnt4h0ku50"  # бесплатный API KEY
 
-    df = load_twelvedata(pair, interval, n_bars)
+def get_tv_series(pair: str, interval="1min", n_bars=300):
+    symbol = pair.replace("/", "")  # EURUSD
+    tf_map = {
+        "1min": "1",
+        "5min": "5",
+        "15min": "15",
+    }
+    res = requests.get(
+        "https://finnhub.io/api/v1/forex/candle",
+        params=dict(
+            symbol=f"OANDA:{symbol}",
+            resolution=tf_map[interval],
+            token=FINNHUB_KEY,
+            count=n_bars,
+        )
+    ).json()
 
-    if df is None or df.empty:
-        return None, {"error": f"No data for {pair} (TwelveData API)"}
+    if res.get("s") != "ok":
+        return None, {"error": "Нет свечей от TradingView source"}
 
-    # ВАЖНО: возвращаем полный набор колонок
-    # analyzer ожидает dt_utc
+    df = pd.DataFrame({
+        "time": res["t"],
+        "open": res["o"],
+        "high": res["h"],
+        "low": res["l"],
+        "close": res["c"],
+    })
+    df["datetime"] = pd.to_datetime(df["time"], unit="s", utc=True)
     df["dt_utc"] = df["datetime"]
 
-    return df, None
+    return df.tail(n_bars), None
