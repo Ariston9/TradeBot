@@ -20,7 +20,11 @@ def load_twelvedata(pair: str, interval: str, n_bars: int = 300):
     """
 
     # EUR/USD → EUR/USD (TwelveData принимает такой формат)
-    symbol = pair
+    # symbol = pair
+    symbol = pair.replace("/", "")
+    if "/" in pair:
+        symbol = pair  # TwelveData как раз принимает формат EUR/USD
+
 
     url = "https://api.twelvedata.com/time_series"
 
