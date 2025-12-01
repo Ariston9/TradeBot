@@ -1,64 +1,18 @@
 import pandas as pd
-import yfinance as yf
-
-INTERVAL_MAP = {
-    "1min": "1m",
-    "5min": "5m",
-    "15min": "15m",
-}
-
-def _pair_to_symbol(pair: str) -> str:
-    """ EUR/CHF -> EURCHF=X """
-    return pair.replace("/", "") + "=X"
-
-def fetch_yahoo(pair: str, interval: str, n_bars: int):
-    symbol = _pair_to_symbol(pair)
-
-    yf_tf = INTERVAL_MAP.get(interval, "1m")
-
-    try:
-        df = yf.download(
-            symbol,
-            interval=yf_tf,
-            period="7d",
-            progress=False,
-            auto_adjust=False
-        )
-        if df.empty:
-            return None
-        
-        df = df.reset_index()
-
-        # Standardize datetime
-        dt_col = "Datetime" if "Datetime" in df.columns else "Date"
-        df["dt_utc"] = pd.to_datetime(df[dt_col], utc=True)
-        df["datetime"] = df["dt_utc"]   # 👈 алиас для analyzer/check_market_open
-
-        # unix timestamp
-        df["time"] = df["dt_utc"].astype("int64") // 10**9
-
-        # rename prices
-        df.rename(columns={
-            "Open":  "open",
-            "High":  "high",
-            "Low":   "low",
-            "Close": "close"
-        }, inplace=True)
-
-        df = df[["time", "open", "high", "low", "close", "dt_utc"]]
-        return df.tail(n_bars)
-
-    except Exception:
-        return None
-
+from bot.api.finnhub_api import load_finnhub
 
 def get_tv_series(pair: str, interval: str = "1min", n_bars: int = 300):
     """
     Главная функция → возвращает свечи.
+    Теперь источник — Finnhub (реальные форекс котировки).
     """
-    df = fetch_yahoo(pair, interval, n_bars)
+
+    df = load_finnhub(pair, interval, n_bars)
 
     if df is None or df.empty:
-        return None, {"error": f"No data for {pair} from Yahoo"}
+        return None, {"error": f"No data for {pair} (Finnhub API)"}
+
+    # analyzer ожидает именно эти колонки
+    df = df[["time", "open", "high", "low", "close", "datetime"]]
 
     return df, None
