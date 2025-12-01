@@ -293,11 +293,19 @@
       const data = await res.json();
       setLoading(false);
 
-      if (!data || data.error) {
-        document.getElementById("signal-title").textContent = "⚠️ Рынок закрыт";
-        document.getElementById("prob").textContent = data?.error || "Нет данных для анализа";
-        showChart(tvSymbol);
-        return;
+      if (!data) {
+          setLoading(false);
+          document.getElementById("signal-title").textContent = "❌ Ошибка";
+          document.getElementById("prob").textContent = "Нет данных";
+          return;
+     }
+
+      if (data.error) {
+          // только для реальных ошибок, а не для NONE
+          document.getElementById("signal-title").textContent = "⚠️Рынок закрыт " + data.error;
+          document.getElementById("prob").textContent = "";
+          showChart(tvSymbol);
+          return;
       }
 
       const dirEl = document.getElementById("signal-title");
