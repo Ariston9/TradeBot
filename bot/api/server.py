@@ -71,3 +71,4 @@ async def get_signal(pair: str = Query(...)):
 
 
 
+
