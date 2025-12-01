@@ -199,19 +199,32 @@
   if (tg && tg.expand) tg.expand();
 
   function getApiBase() {
+    const pill = document.getElementById("statusPill");
+    const tg = window.Telegram && window.Telegram.WebApp;
+
+    // Если запущено внутри Telegram WebApp — всегда берём Railway
+    if (tg) {
+        const apiBase = "https://tradebot-production-74c0.up.railway.app";
+        pill.textContent = "API: Telegram";
+        pill.classList.add("status-ok");
+        return apiBase;
+    }
+
+    // Обычный браузер — читаем ?api=... (как раньше)
     const params = new URLSearchParams(window.location.search);
     const apiFromParam = params.get("api");
     const apiBase = apiFromParam || "https://tradebot-production-74c0.up.railway.app";
-    const pill = document.getElementById("statusPill");
+
     if (apiFromParam) {
-      pill.textContent = "API: из параметра";
-      pill.classList.add("status-ok");
+        pill.textContent = "API: из параметра";
+        pill.classList.add("status-ok");
     } else {
-      pill.textContent = "API: по умолчанию";
-      pill.classList.add("status-warn");
+        pill.textContent = "API: по умолчанию";
+        pill.classList.add("status-warn");
     }
     return apiBase;
   }
+
 
   let API_BASE = getApiBase();
 
@@ -226,8 +239,8 @@
     const select = document.getElementById("pair");
     const opt = select.options[select.selectedIndex];
     return {
-      tvSymbol: opt.value,          // EURUSD
-      apiPair: opt.value      // тоже EURUSD — БЕЗ слэша
+        tvSymbol: opt.value,   // EURUSD
+        apiPair: opt.value     // тоже EURUSD — без слэша
     };
   }
 
