@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timezone
 
-FINNHUB_KEY = "d4mkro1r01qnt4h0ku4gd4mkro1r01qnt4h0ku50"  # бесплатный API KEY
+FINNHUB_KEY = "d4mv0u1r01qsn6g8j7n0d4mv0u1r01qsn6g8j7ng"  # бесплатный API KEY
 
 def get_tv_series(pair: str, interval="1min", n_bars=300):
     symbol = pair.replace("/", "")  # EURUSD
