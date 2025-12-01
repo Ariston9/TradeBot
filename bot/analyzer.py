@@ -224,6 +224,8 @@ async def analyze_pair_for_user(user_id: int, pair: str):
             entry_price if entry_price else 0.0,
             indicators,
         )
+        if expiry is None:
+            expiry = "-"
 
     res = {
         "pair": pair,
