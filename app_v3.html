@@ -201,7 +201,7 @@
   function getApiBase() {
     const params = new URLSearchParams(window.location.search);
     const apiFromParam = params.get("api");
-    const apiBase = apiFromParam || "https://tradebot-production-74c0.up.railway.app/";
+    const apiBase = apiFromParam || "https://tradebot-production-74c0.up.railway.app";
     const pill = document.getElementById("statusPill");
     if (apiFromParam) {
       pill.textContent = "API: из параметра";
@@ -213,11 +213,13 @@
     return apiBase;
   }
 
-  const API_BASE = getApiBase();
-  //   // автоматически добавляем пропущенный хвостовой слеш
-  // if (API_BASE && !API_BASE.endsWith("/")) {
-  //     API_BASE += "/";
-  // }
+  let API_BASE = getApiBase();
+
+  // убираем лишние слэши в конце, чтобы было красиво
+  API_BASE = API_BASE.replace(/\/+$/, "");
+  
+  // дальше везде вызываем `${API_BASE}/get_signal...`
+
   let tvWidget = null;
 
   function getCurrentPair() {
