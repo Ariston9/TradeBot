@@ -1,5 +1,5 @@
 # bot/api/server.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pydantic import BaseModel
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,4 +55,18 @@ def get_signals(symbol: str):
 # @app.get("/autoscan")
 # def autoscan():
 #     return JSONResponse(LATEST_SIGNALS)
+
+@app.get("/get_signal")
+async def get_signal(pair: str = Query(..., description="Например: EUR/USD")):
+    """
+    Совместимый с WebApp эндпоинт.
+    Возвращает тот же формат, что и analyze_pair_for_user.
+    """
+    res, err = await analyze_pair_for_user(0, pair)
+
+    if err:
+        return JSONResponse({"error": err}, status_code=400)
+
+    return JSONResponse(res)
+
 
