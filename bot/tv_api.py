@@ -1,49 +1,63 @@
-# bot/api/tv_api.py
-import yfinance as yf
+import requests
 import pandas as pd
+from datetime import datetime, timedelta, timezone
+
+BASE_URL = "https://dchart-api.tradingview.com/history"
+
+def tv_symbol(pair: str) -> str:
+    """
+    EUR/USD → OANDA:EURUSD
+    GBP/JPY → OANDA:GBPJPY
+    """
+    s = pair.replace("/", "")
+    return f"OANDA:{s}"
 
 def get_tv_series(pair: str, interval="1min", n_bars=300):
-    """
-    Рабочий и надежный метод загрузки котировок через Yahoo Finance.
-    Поддерживает все пары Forex в формате EUR/USD.
-    """
-    # EUR/USD -> EURUSD=X (формат Yahoo)
-    symbol = pair.replace("/", "") + "=X"
+    # 1) Правильное преобразование интервала
+    resolution_map = {
+        "1min": "1",
+        "5min": "5",
+        "15min": "15",
+        "30min": "30",
+        "1h": "60",
+    }
+    res = resolution_map.get(interval, "1")
 
-    tf = {
-        "1min": "1m",
-        "5min": "5m",
-        "15min": "15m",
-        "30min": "30m",
-        "1h": "60m",
-    }.get(interval, "1m")
+    # 2) Дата диапазон для n_bars
+    now = int(datetime.now(timezone.utc).timestamp())
+    # запас +10000 секунд
+    _from = now - 10000
+
+    # 3) TV symbol
+    symbol = tv_symbol(pair)
+
+    params = {
+        "symbol": symbol,
+        "resolution": res,
+        "from": _from,
+        "to": now,
+    }
 
     try:
-        df = yf.download(
-            tickers=symbol,
-            interval=tf,
-            period="7d",
-            progress=False
-        )
+        r = requests.get(BASE_URL, params=params, timeout=7)
+        data = r.json()
 
-        if df is None or df.empty:
-            return None, {"error": f"⚠️ Нет котировок Yahoo для {pair}"}
+        if "s" not in data or data["s"] != "ok":
+            return None, {"error": f"Нет данных TradingView для {pair}"}
 
-        # приведение формата
-        df = df.reset_index().rename(columns={
-            "Datetime": "datetime",
-            "Open": "open",
-            "High": "high",
-            "Low": "low",
-            "Close": "close",
+        df = pd.DataFrame({
+            "time": data["t"],
+            "open": data["o"],
+            "high": data["h"],
+            "low": data["l"],
+            "close": data["c"],
         })
 
-        df["datetime"] = pd.to_datetime(df["datetime"], utc=True)
+        df["datetime"] = pd.to_datetime(df["time"], unit="s", utc=True)
         df["dt_utc"] = df["datetime"]
-        df["time"] = df["datetime"].astype("int64") // 10**9
 
         return df.tail(n_bars), None
 
     except Exception as e:
-        print("Yahoo error:", e)
-        return None, {"error": "⚠️ Ошибка загрузки Yahoo"}
+        print("TV API ERROR:", e)
+        return None, {"error": "Ошибка загрузки TradingView"}
