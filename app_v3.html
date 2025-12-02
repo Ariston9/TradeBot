@@ -202,13 +202,29 @@
     const pill = document.getElementById("statusPill");
     const tg = window.Telegram && window.Telegram.WebApp;
 
-    // Если запущено внутри Telegram WebApp — всегда берём Railway
+    // // Если запущено внутри Telegram WebApp — всегда берём Railway
+    // if (tg) {
+    //     const apiBase = "https://tradebot-production-74c0.up.railway.app";
+    //     pill.textContent = "API: Telegram";
+    //     pill.classList.add("status-ok");
+    //     return apiBase;
+    // }
+    
+    // Если запущено внутри Telegram WebApp — используем параметр ?api=... 
+    // ИЛИ ngrok, если ты его подставил в ссылке
     if (tg) {
-        const apiBase = "https://tradebot-production-74c0.up.railway.app";
+        const params = new URLSearchParams(window.location.search);
+        const apiFromParam = params.get("api");
+    
+        let apiBase = apiFromParam 
+            ? apiFromParam 
+            : "https://tradebot-production-74c0.up.railway.app";
+    
         pill.textContent = "API: Telegram";
         pill.classList.add("status-ok");
         return apiBase;
     }
+
 
     // Обычный браузер — читаем ?api=... (как раньше)
     const params = new URLSearchParams(window.location.search);
