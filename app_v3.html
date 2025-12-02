@@ -210,16 +210,15 @@
     //     return apiBase;
     // }
     
-    // Если запущено внутри Telegram WebApp — используем параметр ?api=... 
-    // ИЛИ ngrok, если ты его подставил в ссылке
+    // Если запущено внутри Telegram WebApp — ПРОБУЕМ взять ?api=...
     if (tg) {
         const params = new URLSearchParams(window.location.search);
         const apiFromParam = params.get("api");
-    
+
         let apiBase = apiFromParam 
             ? apiFromParam 
-            : "https://tradebot-production-74c0.up.railway.app";
-    
+            : "https://tradebot-production-74c0.up.railway.app"; // запасной вариант
+
         pill.textContent = "API: Telegram";
         pill.classList.add("status-ok");
         return apiBase;
