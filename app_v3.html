@@ -199,30 +199,19 @@
   if (tg && tg.expand) tg.expand();
 
   function getApiBase() {
-    const pill = document.getElementById("statusPill");
-    const tg = window.Telegram && window.Telegram.WebApp;
-
-    // // Если запущено внутри Telegram WebApp — всегда берём Railway
-    // if (tg) {
-    //     const apiBase = "https://tradebot-production-74c0.up.railway.app";
-    //     pill.textContent = "API: Telegram";
-    //     pill.classList.add("status-ok");
-    //     return apiBase;
-    // }
-    
-    // Если запущено внутри Telegram WebApp — ПРОБУЕМ взять ?api=...
-    if (tg) {
-        const params = new URLSearchParams(window.location.search);
-        const apiFromParam = params.get("api");
-
-        let apiBase = apiFromParam 
-            ? apiFromParam 
-            : "https://tradebot-production-74c0.up.railway.app"; // запасной вариант
-
-        pill.textContent = "API: Telegram";
-        pill.classList.add("status-ok");
-        return apiBase;
-    }
+      const pill = document.getElementById("statusPill");
+  
+      // 🔴 ВАЖНО: сюда вставь СВОЙ актуальный ngrok-URL из Colab
+      // пример:
+      // const apiBase = "https://1234-56-78-90-abcdef.ngrok-free.app";
+      const apiBase = "https://philologic-resentfully-kimberlee.ngrok-free.dev";
+  
+      pill.textContent = "API: Colab";
+      pill.classList.add("status-ok");
+  
+      // на всякий случай убираем лишние / в конце
+      return apiBase.replace(/\/+$/, "");
+  }
 
 
     // Обычный браузер — читаем ?api=... (как раньше)
