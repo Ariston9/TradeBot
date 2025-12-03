@@ -15,7 +15,7 @@
       <div class="header-logo"></div>
       <div class="header-text">
         <div class="header-title">Trade Assistant</div>
-        <div class="header-subtitle">Надежный помошник в трейдинге</div>
+        <div class="header-subtitle">Надежный помощник в трейдинге</div>
       </div>
     </div>
 
@@ -40,7 +40,7 @@
 
         <!-- USD pairs -->
         <option value="USDJPY" data-api="USD/JPY">🇺🇸 USD/JPY 🇯🇵</option>
-        <option value="USDCAD" data-api="USD/CAD">🇺🇸 USD/CAD 🇨🇦</option>
+        <option value="USDCAD" data-api="USD/CAD">🇺🇸 USDCAD 🇨🇦</option>
         <option value="USDCHF" data-api="USD/CHF">🇺🇸 USD/CHF 🇨🇭</option>
 
         <!-- AUD pairs -->
@@ -198,53 +198,34 @@
   const tg = window.Telegram && window.Telegram.WebApp;
   if (tg && tg.expand) tg.expand();
 
+  // ====== БАЗОВЫЙ URL API: ВСЕГДА ИЗ ?api=... ======
   function getApiBase() {
-      const pill = document.getElementById("statusPill");
-  
-      // 🔴 ВАЖНО: сюда вставь СВОЙ актуальный ngrok-URL из Colab
-      // пример:
-      // const apiBase = "https://1234-56-78-90-abcdef.ngrok-free.app";
-      const apiBase = "https://philologic-resentfully-kimberlee.ngrok-free.dev";
-  
-      pill.textContent = "API: Colab";
-      pill.classList.add("status-ok");
-  
-      // на всякий случай убираем лишние / в конце
-      return apiBase.replace(/\/+$/, "");
-  }
-
-
-    // Обычный браузер — читаем ?api=... (как раньше)
+    const pill = document.getElementById("statusPill");
     const params = new URLSearchParams(window.location.search);
     const apiFromParam = params.get("api");
-    const apiBase = apiFromParam || "https://tradebot-production-74c0.up.railway.app";
 
     if (apiFromParam) {
-        pill.textContent = "API: из параметра";
-        pill.classList.add("status-ok");
-    } else {
-        pill.textContent = "API: по умолчанию";
-        pill.classList.add("status-warn");
+      const clean = apiFromParam.replace(/\/+$/, "");
+      pill.textContent = "API: Colab/ngrok";
+      pill.classList.add("status-ok");
+      return clean;
     }
-    return apiBase;
+
+    // Если параметр не передан — покажем предупреждение
+    pill.textContent = "API: не задан (?api=...)";
+    pill.classList.add("status-warn");
+    return "";
   }
 
-
   let API_BASE = getApiBase();
-
-  // убираем лишние слэши в конце, чтобы было красиво
-  API_BASE = API_BASE.replace(/\/+$/, "");
-  
-  // дальше везде вызываем `${API_BASE}/get_signal...`
-
   let tvWidget = null;
 
   function getCurrentPair() {
     const select = document.getElementById("pair");
     const opt = select.options[select.selectedIndex];
     return {
-        tvSymbol: opt.value,   // EURUSD
-        apiPair: opt.dataset.api // EUR/USD ← НУЖНО!
+      tvSymbol: opt.value,        // EURUSD
+      apiPair: opt.dataset.api    // EUR/USD
     };
   }
 
@@ -256,12 +237,10 @@
       btn.classList.toggle("active", btn.dataset.tab === tab);
     });
 
-    // при входе на вкладку статистики сразу подтянем данные
     if (tab === "stats") {
       const p = getCurrentPair();
       loadStats(p.tvSymbol);
     }
-    // история тоже можно обновлять при входе
     if (tab === "history") {
       const p = getCurrentPair();
       loadSignals(p.tvSymbol);
@@ -270,6 +249,7 @@
 
   function setLoading(isLoading) {
     const btn = document.getElementById("signalButton");
+    if (!btn) return;
     if (isLoading) {
       btn.classList.add("btn-loading");
       btn.textContent = "⏳ Анализ...";
@@ -288,28 +268,37 @@
     document.getElementById("price").textContent = "Цена входа: –";
     document.getElementById("progressBar").style.width = "0%";
 
+    if (!API_BASE) {
+      document.getElementById("signal-title").textContent = "❌ Не задан API";
+      document.getElementById("prob").textContent = "Добавь ?api=URL_ТВОЕГО_COLAB";
+      return;
+    }
+
     setLoading(true);
     switchTab("signal");
 
     try {
       const url = `${API_BASE}/get_signal?pair=${encodeURIComponent(apiPair)}`;
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        headers: {
+          "ngrok-skip-browser-warning": "true"
+        }
+      });
+
       const data = await res.json();
       setLoading(false);
 
       if (!data) {
-          setLoading(false);
-          document.getElementById("signal-title").textContent = "❌ Ошибка";
-          document.getElementById("prob").textContent = "Нет данных";
-          return;
-     }
+        document.getElementById("signal-title").textContent = "❌ Ошибка";
+        document.getElementById("prob").textContent = "Нет данных";
+        return;
+      }
 
       if (data.error) {
-          // только для реальных ошибок, а не для NONE
-          document.getElementById("signal-title").textContent = "⚠️Рынок закрыт " + data.error;
-          document.getElementById("prob").textContent = "";
-          showChart(tvSymbol);
-          return;
+        document.getElementById("signal-title").textContent = "⚠️ " + data.error;
+        document.getElementById("prob").textContent = "";
+        showChart(tvSymbol);
+        return;
       }
 
       const dirEl = document.getElementById("signal-title");
@@ -327,7 +316,8 @@
 
       const prob = data.prob || 0;
       document.getElementById("prob").textContent = `🎯 Вероятность: ${prob}%`;
-      document.getElementById("progressBar").style.width = Math.max(0, Math.min(100, prob)) + "%";
+      document.getElementById("progressBar").style.width =
+        Math.max(0, Math.min(100, prob)) + "%";
 
       if (data.expiry) {
         document.getElementById("expiry").textContent = `Экспирация: ${data.expiry} мин`;
@@ -344,7 +334,7 @@
       console.error(e);
       setLoading(false);
       document.getElementById("signal-title").textContent = "❌ Ошибка загрузки данных";
-      document.getElementById("prob").textContent = "Проверь подключение к интернету или API.";
+      document.getElementById("prob").textContent = "Проверь интернет или Colab/ngrok.";
     }
   }
 
@@ -380,8 +370,13 @@
   }
 
   async function loadSignals(tvSymbol) {
+    if (!API_BASE) return;
     try {
-      const res = await fetch(`${API_BASE}/signals?symbol=${tvSymbol}`);
+      const res = await fetch(`${API_BASE}/signals?symbol=${tvSymbol}`, {
+        headers: {
+          "ngrok-skip-browser-warning": "true"
+        }
+      });
       const data = await res.json();
       const div = document.getElementById("signals");
       div.innerHTML = "";
@@ -411,8 +406,14 @@
   }
 
   async function loadStats(tvSymbol) {
+    if (!API_BASE) return;
     try {
-      const res = await fetch(`${API_BASE}/stats?symbol=${tvSymbol}`);
+      const res = await fetch(`${API_BASE}/stats?symbol=${tvSymbol}`, {
+        headers: {
+          "ngrok-skip-browser-warning": "true"
+        }
+      });
+
       const data = await res.json() || {};
 
       const total   = data.total   ?? (data.wins || 0) + (data.losses || 0);
@@ -455,7 +456,6 @@
     loadStats(tvSymbol);
   });
 
-  // смена пары в хедере
   document.getElementById("pair").addEventListener("change", () => {
     const { tvSymbol, apiPair } = getCurrentPair();
     document.getElementById("chartTitle").textContent = "График: " + apiPair;
@@ -464,6 +464,7 @@
     loadSignals(tvSymbol);
   });
 </script>
+
 <button id="signalButton" class="floating-signal-btn" onclick="updateSignal()">
   Получить сигнал
 </button>
