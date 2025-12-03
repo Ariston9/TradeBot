@@ -200,29 +200,24 @@
 
   function getApiBase() {
     const pill = document.getElementById("statusPill");
-    const tg = window.Telegram && window.Telegram.WebApp;
 
-    // // Если запущено внутри Telegram WebApp — всегда берём Railway
-    // if (tg) {
-    //     const apiBase = "https://tradebot-production-74c0.up.railway.app";
-    //     pill.textContent = "API: Telegram";
-    //     pill.classList.add("status-ok");
-    //     return apiBase;
-    // }
-    
-    // Если запущено внутри Telegram WebApp — ПРОБУЕМ взять ?api=...
-    if (tg) {
-        const params = new URLSearchParams(window.location.search);
-        const apiFromParam = params.get("api");
+    // Читаем параметр ?api= ... ВСЕГДА 
+    const params = new URLSearchParams(window.location.search);
+    const apiFromParam = params.get("api");
 
-        let apiBase = apiFromParam 
-            ? apiFromParam 
-            : "https://tradebot-production-74c0.up.railway.app"; // запасной вариант
-
-        pill.textContent = "API: Telegram";
+    // ⭐ Если параметр есть — используем ТОЛЬКО его
+    if (apiFromParam) {
+        pill.textContent = "API: ngrok/Colab";
         pill.classList.add("status-ok");
-        return apiBase;
+        return apiFromParam;
     }
+
+    // ⭐ Если параметра нет — fallback (браузер / Telegram)
+    pill.textContent = "API: по умолчанию (Railway)";
+    pill.classList.add("status-warn");
+    return "https://tradebot-production-74c0.up.railway.app";
+}
+
 
 
     // Обычный браузер — читаем ?api=... (как раньше)
