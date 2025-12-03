@@ -304,7 +304,12 @@
 
     try {
       const url = `${API_BASE}/get_signal?pair=${encodeURIComponent(apiPair)}`;
-      const res = await fetch(url);
+      const res = await fetch(url, {
+          headers: {
+              "ngrok-skip-browser-warning": "true"
+          }
+      });
+
       const data = await res.json();
       setLoading(false);
 
@@ -392,7 +397,12 @@
 
   async function loadSignals(tvSymbol) {
     try {
-      const res = await fetch(`${API_BASE}/signals?symbol=${tvSymbol}`);
+      const res = await fetch(`${API_BASE}/signals?symbol=${tvSymbol}`, {
+          headers: {
+              "ngrok-skip-browser-warning": "true"
+          }
+      });
+
       const data = await res.json();
       const div = document.getElementById("signals");
       div.innerHTML = "";
@@ -423,7 +433,12 @@
 
   async function loadStats(tvSymbol) {
     try {
-      const res = await fetch(`${API_BASE}/stats?symbol=${tvSymbol}`);
+      const res = await fetch(`${API_BASE}/stats?symbol=${tvSymbol}`, {
+          headers: {
+              "ngrok-skip-browser-warning": "true"
+          }
+      });
+
       const data = await res.json() || {};
 
       const total   = data.total   ?? (data.wins || 0) + (data.losses || 0);
