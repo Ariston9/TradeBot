@@ -337,7 +337,7 @@
       loadSignals(tvSymbol);
       loadStats(tvSymbol);
 
-      catch (e) {
+    } catch (e) {
       console.error(e);
       setLoading(false);
       document.getElementById("signal-title").textContent = "❌ Ошибка загрузки данных";
