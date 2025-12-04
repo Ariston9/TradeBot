@@ -66,6 +66,7 @@
           <div>
             <div id="signal-title" class="signal-direction">⏳ Ожидание сигнала...</div>
             <div id="prob" class="signal-prob muted">Нажми «Получить сигнал»</div>
+            <div id="direction" class="signal-extra">Направление: –</div>
           </div>
         </div>
 
@@ -313,15 +314,22 @@
       } else {
         dirEl.textContent = "⚪ Сигнал слабый";
       }
+      const directionBox = document.getElementById("direction");
+      directionBox.textContent = "Направление: " + (data.dir || "–");
 
       const prob = data.prob || 0;
       document.getElementById("prob").textContent = `🎯 Вероятность: ${prob}%`;
       document.getElementById("progressBar").style.width =
         Math.max(0, Math.min(100, prob)) + "%";
 
-      if (data.expiry) {
-        document.getElementById("expiry").textContent = `Экспирация: ${data.expiry} мин`;
+      if (data.dir === "NONE") {
+      document.getElementById("expiry").textContent = "Экспирация: Сигнал слабый";
+      } else if (data.expiry) {
+          document.getElementById("expiry").textContent = `Экспирация: ${data.expiry} мин`;
+      } else {
+          document.getElementById("expiry").textContent = "Экспирация: –";
       }
+
       if (data.entry_price) {
         document.getElementById("price").textContent = `Цена входа: ${data.entry_price}`;
       }
