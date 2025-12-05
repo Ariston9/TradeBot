@@ -281,12 +281,20 @@
     try {
       const url = `${API_BASE}/get_signal?pair=${encodeURIComponent(apiPair)}`;
       const res = await fetch(url, {
-        headers: {
-          "ngrok-skip-browser-warning": "true"
-        }
+        headers: { "ngrok-skip-browser-warning": "true" }
       });
+      
+      const raw = await res.text();
+      console.log("RAW SIGNAL RESPONSE:", raw);
+      
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (err) {
+        console.error("JSON parse error:", err, "RAW:", raw);
+        throw new Error("Invalid JSON from API");
+      }
 
-      const data = await res.json();
       setLoading(false);
 
       if (!data) {
