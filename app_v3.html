@@ -296,6 +296,14 @@
       }
 
       setLoading(false);
+            // === ПРОВЕРКА JSON ===
+      if (!data || typeof data !== "object") {
+        throw new Error("API returned invalid structure");
+      }
+      if (!("dir" in data)) {
+        throw new Error("Missing 'dir' in signal");
+      }
+      // ======================
 
       if (!data) {
         document.getElementById("signal-title").textContent = "❌ Ошибка";
