@@ -7,10 +7,10 @@ import pandas as pd
 import requests
 
 from bot.config import TFS, MAX_CANDLES, REQUEST_DELAY
-from .tv_api import get_tv_series
-from .indicators import compute_indicators
-from .scoring import score_on_tf, calc_overall_probability
-from .logger import log_signal
+from bot.tv_api import get_tv_series
+from bot.indicators import compute_indicators
+from bot.scoring import score_on_tf, calc_overall_probability
+from bot.logger import log_signal
 
 
 # --- опциональные объекты для PO Streaming Engine ---------------------
@@ -25,14 +25,14 @@ try:
     #     ...
     # }
     # PO_ENGINE_HTTP = "http://127.0.0.1:9001"
-    from .config import PO_SYMBOL_MAP, PO_ENGINE_HTTP  # type: ignore
+    from bot.config import PO_SYMBOL_MAP, PO_ENGINE_HTTP  # type: ignore
 except Exception:
     PO_SYMBOL_MAP = {}
     PO_ENGINE_HTTP = None
 
 # Живая цена от PO Streaming v10 (заполняется в pocket_po_feed.py)
 try:
-    from .pocket_po_feed import CURRENT_PO_PRICE  # type: ignore
+    from bot.pocket_po_feed import CURRENT_PO_PRICE  # type: ignore
 except Exception:
     CURRENT_PO_PRICE = {}
 
