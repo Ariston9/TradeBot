@@ -21,7 +21,9 @@ PAIRS = [
     "GBP/USD","GBP/JPY","GBP/CAD","GBP/AUD","GBP/CHF",
     "USD/JPY","USD/CAD","USD/CHF",
     "AUD/USD","AUD/JPY","AUD/CAD","AUD/CHF",
-    "CAD/JPY","CAD/CHF"
+    "CAD/JPY","CAD/CHF",
+    # OTC (доступно только через PocketOption)
+    "OTC_EURUSD","OTC_GBPUSD","OTC_USDCAD","OTC_USDJPY"
 ]
 
 TFS = {"M1":"1min","M5":"5min","M15":"15min"}
@@ -51,6 +53,20 @@ TV_MAP = {
     "CAD/JPY": ("CADJPY","OANDA"),
     "CAD/CHF": ("CADCHF","OANDA"),
 }
+
+# соответствие WOG → POEngine
+PO_SYMBOL_MAP = {
+    "EUR/USD": "EURUSD",
+    "GBP/USD": "GBPUSD",
+    "USD/JPY": "USDJPY",
+    "USD/CAD": "USDCAD",
+
+    "OTC_EURUSD": "EURUSD_otc",
+    "OTC_GBPUSD": "GBPUSD_otc",
+    "OTC_USDCAD": "USDCAD_otc",
+    "OTC_USDJPY": "USDJPY_otc",
+}
+
 
 def tv_chart_url(pair: str) -> str:
     sym, ex = TV_MAP[pair]
