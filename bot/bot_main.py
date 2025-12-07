@@ -17,6 +17,7 @@ from .logger import stats_last_24h, build_pie, evaluate_pending_signals
 
 from fastapi import FastAPI
 from bot.api.server import app as fastapi_app
+from bot.pocket_po_feed import po_ws_loop
 
 
 
@@ -309,6 +310,7 @@ async def main() -> None:
     threading.Thread(target=background_evaluation, daemon=True).start()
     # 🔥 вот эта строка запускает autoscan
     asyncio.create_task(autoscan_loop(bot))
+    asyncio.create_task(po_ws_loop())
 
     await dp.start_polling(bot)
 
