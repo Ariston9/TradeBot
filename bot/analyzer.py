@@ -8,6 +8,11 @@ from .indicators import compute_indicators
 from .scoring import score_on_tf, calc_overall_probability
 from .logger import log_signal
 
+from bot.config import PO_SYMBOL_MAP
+from bot.pocket_po_feed import CURRENT_PO_PRICE
+
+PO_ENGINE_HTTP = "http://127.0.0.1:9001"  # свой VPS
+
 def check_market_open(df):
     """
     Проверка свежести свечей — как в Colab.
