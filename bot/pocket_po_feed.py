@@ -11,7 +11,7 @@ import websockets
 CURRENT_PO_PRICE = {}
 
 # Укажи свой VPS или локальный хост где работает PO Engine
-PO_WS_URL = "ws://127.0.0.1:9002/ws"
+PO_WS_URL = "ws://localhost:9222/devtools/page/FD5816281316E4287AD5C5DF209F4DE3"
 
 
 async def po_ws_loop():
@@ -52,3 +52,4 @@ async def po_ws_loop():
         except Exception as e:
             print("❌ PO WS error:", e)
             await asyncio.sleep(3)
+
