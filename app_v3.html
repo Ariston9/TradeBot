@@ -409,19 +409,19 @@ async function loadStats(tvSymbol) {
       INITIAL LOAD
 ======================================================================= */
 window.addEventListener("load", () => {
-  const { tvSymbol, apiPair } = getCurrentPair();
-  document.getElementById("chartTitle").textContent = "График: " + apiPair;
-  safeChartInit(tvSymbol);
-  loadStats(tvSymbol);
-});
+    const { tvSymbol, apiPair } = getCurrentPair();
+    document.getElementById("chartTitle").textContent = "График: " + apiPair;
+    showChart(tvSymbol);
+    loadStats(tvSymbol);
+  });
 
-document.getElementById("pair").addEventListener("change", () => {
-  const { tvSymbol, apiPair } = getCurrentPair();
-  document.getElementById("chartTitle").textContent = "График: " + apiPair;
-  safeChartInit(tvSymbol);
-  setTimeout(() => loadStats(tvSymbol), 50);
-  setTimeout(() => loadSignals(tvSymbol), 100);
-});
+  document.getElementById("pair").addEventListener("change", () => {
+    const { tvSymbol, apiPair } = getCurrentPair();
+    document.getElementById("chartTitle").textContent = "График: " + apiPair;
+    showChart(tvSymbol);
+    loadStats(tvSymbol);
+    loadSignals(tvSymbol);
+  });
 
 </script>
 
