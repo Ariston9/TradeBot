@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Trade Assistant WebApp v3</title>
+  <title>WOG</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style_v3.css" />
 </head>
@@ -212,7 +212,6 @@
       return clean;
     }
 
-    // Если параметр не передан — покажем предупреждение
     pill.textContent = "API: не задан (?api=...)";
     pill.classList.add("status-warn");
     return "";
@@ -260,6 +259,7 @@
     }
   }
 
+  /* ================== ГЛАВНАЯ ФУНКЦИЯ СИГНАЛА ================== */
   async function updateSignal() {
     const { tvSymbol, apiPair } = getCurrentPair();
     document.getElementById("chartTitle").textContent = "График: " + apiPair;
@@ -267,6 +267,7 @@
     document.getElementById("prob").textContent = "";
     document.getElementById("expiry").textContent = "Экспирация: –";
     document.getElementById("price").textContent = "Цена входа: –";
+    document.getElementById("direction").textContent = "Направление: –";
     document.getElementById("progressBar").style.width = "0%";
 
     if (!API_BASE) {
@@ -278,60 +279,36 @@
     setLoading(true);
     switchTab("signal");
 
+    const url = `${API_BASE}/get_signal?pair=${encodeURIComponent(apiPair)}`;
+
     try {
-      const url = `${API_BASE}/get_signal?pair=${encodeURIComponent(apiPair)}`;
       const res = await fetch(url, {
         headers: { "ngrok-skip-browser-warning": "true" }
       });
-      
+
       const raw = await res.text();
       console.log("RAW SIGNAL RESPONSE:", raw);
-      
-      // let data;
-      // try {
-      //   data = JSON.parse(raw);
-      // } catch (err) {
-      //   console.error("JSON parse error:", err, "RAW:", raw);
-      //   throw new Error("Invalid JSON from API");
-      // }
 
       let data;
       try {
-          data = JSON.parse(raw);
+        data = JSON.parse(raw);
       } catch (err) {
-          console.warn("❗ API прислал не-JSON, пробуем ещё раз через 300 мс", raw);
-      
-          // === Повторный запрос ===
-          await new Promise(r => setTimeout(r, 300));
-      
-          const res2 = await fetch(url, { headers: { "ngrok-skip-browser-warning": "true" } });
-          const raw2 = await res2.text();
-          console.log("Retry RAW:", raw2);
-      
-          try {
-              data = JSON.parse(raw2);
-          } catch (err2) {
-              console.error("❌ Второй JSON парсинг провалился:", err2, "RAW2:", raw2);
-              throw new Error("API_ERROR: invalid JSON");
-          }
+        console.warn("❗ API прислал не-JSON, пробуем ещё раз через 300 мс", raw);
+
+        await new Promise(r => setTimeout(r, 300));
+        const res2 = await fetch(url, {
+          headers: { "ngrok-skip-browser-warning": "true" }
+        });
+        const raw2 = await res2.text();
+        console.log("Retry RAW:", raw2);
+        data = JSON.parse(raw2); // если снова не JSON — пойдём в внешний catch
       }
 
+      if (!data || typeof data !== "object" || !("dir" in data)) {
+        throw new Error("Bad API structure");
+      }
 
       setLoading(false);
-            // === ПРОВЕРКА JSON ===
-      if (!data || typeof data !== "object") {
-        throw new Error("API returned invalid structure");
-      }
-      if (!("dir" in data)) {
-        throw new Error("Missing 'dir' in signal");
-      }
-      // ======================
-
-      if (!data) {
-        document.getElementById("signal-title").textContent = "❌ Ошибка";
-        document.getElementById("prob").textContent = "Нет данных";
-        return;
-      }
 
       if (data.error) {
         document.getElementById("signal-title").textContent = "⚠️ " + data.error;
@@ -352,8 +329,11 @@
       } else {
         dirEl.textContent = "⚪ Сигнал слабый";
       }
+
       const directionBox = document.getElementById("direction");
-      directionBox.textContent = "Направление: " + (data.dir || "–");
+      if (directionBox) {
+        directionBox.textContent = "Направление: " + (data.dir || "–");
+      }
 
       const prob = data.prob || 0;
       document.getElementById("prob").textContent = `🎯 Вероятность: ${prob}%`;
@@ -361,11 +341,11 @@
         Math.max(0, Math.min(100, prob)) + "%";
 
       if (data.dir === "NONE") {
-      document.getElementById("expiry").textContent = "Экспирация: Сигнал слабый";
+        document.getElementById("expiry").textContent = "Экспирация: Сигнал слабый";
       } else if (data.expiry) {
-          document.getElementById("expiry").textContent = `Экспирация: ${data.expiry} мин`;
+        document.getElementById("expiry").textContent = `Экспирация: ${data.expiry} мин`;
       } else {
-          document.getElementById("expiry").textContent = "Экспирация: –";
+        document.getElementById("expiry").textContent = "Экспирация: –";
       }
 
       if (data.entry_price) {
@@ -377,10 +357,12 @@
       loadStats(tvSymbol);
 
     } catch (e) {
-      console.error(e);
+      console.error("updateSignal error:", e);
       setLoading(false);
-      document.getElementById("signal-title").textContent = "❌ Ошибка загрузки данных";
-      document.getElementById("prob").textContent = "Проверь интернет или Colab/ngrok.";
+      const titleEl = document.getElementById("signal-title");
+      const probEl  = document.getElementById("prob");
+      if (titleEl) titleEl.textContent = "❌ Ошибка загрузки сигнала";
+      if (probEl)  probEl.textContent  = "Проверь интернет или API Colab/ngrok.";
     }
   }
 
@@ -419,9 +401,7 @@
     if (!API_BASE) return;
     try {
       const res = await fetch(`${API_BASE}/signals?symbol=${tvSymbol}`, {
-        headers: {
-          "ngrok-skip-browser-warning": "true"
-        }
+        headers: { "ngrok-skip-browser-warning": "true" }
       });
       const data = await res.json();
       const div = document.getElementById("signals");
@@ -455,9 +435,7 @@
     if (!API_BASE) return;
     try {
       const res = await fetch(`${API_BASE}/stats?symbol=${tvSymbol}`, {
-        headers: {
-          "ngrok-skip-browser-warning": "true"
-        }
+        headers: { "ngrok-skip-browser-warning": "true" }
       });
 
       const data = await res.json() || {};
