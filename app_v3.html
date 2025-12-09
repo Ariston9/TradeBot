@@ -10,42 +10,48 @@
 <body>
 <div class="app-root">
 
-  <!-- ======= ШАПКА ======= -->
+  <!-- ======= ХЕДЕР ======= -->
   <header class="app-header">
-    <div class="app-title-block">
-      <div class="app-title">WOG</div>
-      <div class="app-subtitle">Надёжный помощник в трейдинге</div>
+    <div class="header-left">
+      <div class="header-logo"></div>
+      <div class="header-text">
+        <div class="header-title">Trade Assistant</div>
+        <div class="header-subtitle">Надёжный помощник в трейдинге</div>
+      </div>
     </div>
 
-    <div class="api-pill" id="statusPill">API: …</div>
+    <div class="header-right">
+      <div class="api-pill" id="statusPill">API: неизвестно</div>
 
-    <div class="pair-select">
-      <label for="pair">Валютная пара</label>
-      <select id="pair">
-        <!-- EUR -->
+      <label class="pair-label" for="pair">Валютная пара</label>
+      <select id="pair" class="pair-select">
+        <!-- EUR pairs -->
         <option value="EURUSD" data-api="EUR/USD">🇪🇺 EUR/USD 🇺🇸</option>
-        <option value="EURJPY" data-api="EUR/JPY">🇪🇺 EUR/JPY 🇯🇵</option>
         <option value="EURGBP" data-api="EUR/GBP">🇪🇺 EUR/GBP 🇬🇧</option>
-        <option value="EURCAD" data-api="EUR/CAD">🇪🇺 EUR/CAD 🇨🇦</option>
         <option value="EURAUD" data-api="EUR/AUD">🇪🇺 EUR/AUD 🇦🇺</option>
+        <option value="EURJPY" data-api="EUR/JPY">🇪🇺 EUR/JPY 🇯🇵</option>
         <option value="EURCHF" data-api="EUR/CHF">🇪🇺 EUR/CHF 🇨🇭</option>
+        <option value="EURCAD" data-api="EUR/CAD">🇪🇺 EUR/CAD 🇨🇦</option>
 
-        <!-- USD -->
-        <option value="USDJPY" data-api="USD/JPY">🇺🇸 USD/JPY 🇯🇵</option>
-        <option value="USDCHF" data-api="USD/CHF">🇺🇸 USD/CHF 🇨🇭</option>
-        <option value="USDCAD" data-api="USD/CAD">🇺🇸 USD/CAD 🇨🇦</option>
-
-        <!-- GBP -->
+        <!-- GBP pairs -->
         <option value="GBPUSD" data-api="GBP/USD">🇬🇧 GBP/USD 🇺🇸</option>
         <option value="GBPJPY" data-api="GBP/JPY">🇬🇧 GBP/JPY 🇯🇵</option>
+        <option value="GBPCHF" data-api="GBP/CHF">🇬🇧 GBP/CHF 🇨🇭</option>
+        <option value="GBPAUD" data-api="GBP/AUD">🇬🇧 GBP/AUD 🇦🇺</option>
         <option value="GBPCAD" data-api="GBP/CAD">🇬🇧 GBP/CAD 🇨🇦</option>
 
-        <!-- AUD -->
+        <!-- USD pairs -->
+        <option value="USDJPY" data-api="USD/JPY">🇺🇸 USD/JPY 🇯🇵</option>
+        <option value="USDCAD" data-api="USD/CAD">🇺🇸 USDCAD 🇨🇦</option>
+        <option value="USDCHF" data-api="USD/CHF">🇺🇸 USD/CHF 🇨🇭</option>
+
+        <!-- AUD pairs -->
         <option value="AUDUSD" data-api="AUD/USD">🇦🇺 AUD/USD 🇺🇸</option>
         <option value="AUDJPY" data-api="AUD/JPY">🇦🇺 AUD/JPY 🇯🇵</option>
+        <option value="AUDCHF" data-api="AUD/CHF">🇦🇺 AUD/CHF 🇨🇭</option>
         <option value="AUDCAD" data-api="AUD/CAD">🇦🇺 AUD/CAD 🇨🇦</option>
 
-        <!-- CAD -->
+        <!-- CAD pairs -->
         <option value="CADJPY" data-api="CAD/JPY">🇨🇦 CAD/JPY 🇯🇵</option>
         <option value="CADCHF" data-api="CAD/CHF">🇨🇦 CAD/CHF 🇨🇭</option>
       </select>
