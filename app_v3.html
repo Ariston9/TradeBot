@@ -287,13 +287,35 @@
       const raw = await res.text();
       console.log("RAW SIGNAL RESPONSE:", raw);
       
+      // let data;
+      // try {
+      //   data = JSON.parse(raw);
+      // } catch (err) {
+      //   console.error("JSON parse error:", err, "RAW:", raw);
+      //   throw new Error("Invalid JSON from API");
+      // }
+
       let data;
       try {
-        data = JSON.parse(raw);
+          data = JSON.parse(raw);
       } catch (err) {
-        console.error("JSON parse error:", err, "RAW:", raw);
-        throw new Error("Invalid JSON from API");
+          console.warn("❗ API прислал не-JSON, пробуем ещё раз через 300 мс", raw);
+      
+          // === Повторный запрос ===
+          await new Promise(r => setTimeout(r, 300));
+      
+          const res2 = await fetch(url, { headers: { "ngrok-skip-browser-warning": "true" } });
+          const raw2 = await res2.text();
+          console.log("Retry RAW:", raw2);
+      
+          try {
+              data = JSON.parse(raw2);
+          } catch (err2) {
+              console.error("❌ Второй JSON парсинг провалился:", err2, "RAW2:", raw2);
+              throw new Error("API_ERROR: invalid JSON");
+          }
       }
+
 
       setLoading(false);
             // === ПРОВЕРКА JSON ===
