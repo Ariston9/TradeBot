@@ -409,19 +409,20 @@ async function loadStats(tvSymbol) {
       INITIAL LOAD
 ======================================================================= */
 window.addEventListener("load", () => {
-    const { tvSymbol, apiPair } = getCurrentPair();
-    document.getElementById("chartTitle").textContent = "График: " + apiPair;
-    showChart(tvSymbol);
-    loadStats(tvSymbol);
-  });
+  const { tvSymbol, apiPair } = getCurrentPair();
+  document.getElementById("chartTitle").textContent = "График: " + apiPair;
+  safeChartInit(tvSymbol);
+  loadStats(tvSymbol);
 
-  document.getElementById("pair").addEventListener("change", () => {
-    const { tvSymbol, apiPair } = getCurrentPair();
-    document.getElementById("chartTitle").textContent = "График: " + apiPair;
-    showChart(tvSymbol);
-    loadStats(tvSymbol);
-    loadSignals(tvSymbol);
+  // 🔹 ДОБАВЛЯЕМ РУЧНЫЕ ОБРАБОТЧИКИ НА КНОПКИ ТАБОВ
+  document.querySelectorAll(".bottom-nav .nav-item").forEach(btn => {
+    const tab = btn.dataset.tab;
+    if (!tab) return;
+    btn.addEventListener("click", () => {
+      switchTab(tab);
+    });
   });
+});
 
 </script>
 
