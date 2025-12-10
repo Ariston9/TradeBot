@@ -408,50 +408,41 @@
 
   // ====== История сигналов ======
   async function loadSignals(tvSymbol) {
-    if (!API_BASE) return;
-    try {
-      const res = await fetch(
-        `${API_BASE}/stats?symbol=${encodeURIComponent(tvSymbol)}`,
-        { headers: { "ngrok-skip-browser-warning": "true" } }
-      );
-      const data = await res.json();
-      const box = document.getElementById("signals");
+  if (!API_BASE) return;
+  try {
+    const res = await fetch(`${API_BASE}/signals?symbol=${tvSymbol}`, {
+      headers: { "ngrok-skip-browser-warning": "true" }
+    });
 
-      if (!data || !Array.isArray(data.signals) || data.signals.length === 0) {
-        box.innerHTML = '<p class="muted">Нет данных по истории.</p>';
-        return;
-      }
+    let data;
+    try { data = await res.json(); }
+    catch { console.warn("History JSON error"); return; }
 
-      box.innerHTML = "";
-      data.signals.forEach(sig => {
-        const item = document.createElement("div");
-        item.className = "signal-row";
+    const div = document.getElementById("signals");
+    div.innerHTML = "";
 
-        const dir = (sig.direction || sig.dir || "NONE").toUpperCase();
-        const prob = Number(sig.probability ?? sig.prob ?? 0);
-        const price = sig.entry_price ?? sig.entry ?? null;
-
-        const dirLabel =
-          dir === "BUY" ? "BUY 🟢" :
-          dir === "SELL" ? "SELL 🔴" :
-          "NONE ⚪";
-
-        item.innerHTML = `
-          <div class="signal-row-main">
-            <span class="signal-row-dir">${dirLabel}</span>
-            <span class="signal-row-prob">${prob.toFixed(0)}%</span>
-          </div>
-          <div class="signal-row-extra">
-            <span>${sig.timestamp || ""}</span>
-            <span>${price ? "Цена: " + Number(price).toFixed(5) : ""}</span>
-          </div>
-        `;
-        box.appendChild(item);
-      });
-    } catch (e) {
-      console.error("History error:", e);
+    if (!Array.isArray(data) || data.length === 0) {
+      div.innerHTML = "<p class='muted'>Пока нет сигналов</p>";
+      return;
     }
+
+    data.slice(-30).reverse().forEach(s => {
+      const el = document.createElement("div");
+      el.className = "signal-row " + (s.direction === "BUY" ? "buy" : "sell");
+      el.innerHTML = `
+        <div class="signal-main">
+          <span class="signal-time">${s.time || ""}</span>
+          <span class="signal-dir">${s.direction || ""}</span>
+        </div>
+        <div class="signal-reason">${s.reason || ""}</div>
+      `;
+      div.appendChild(el);
+    });
+
+  } catch (e) {
+    console.warn("History error:", e);
   }
+}
 
   // ====== Статистика ======
   async function loadStats(tvSymbol) {
