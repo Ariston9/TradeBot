@@ -384,99 +384,136 @@
   }
 
   // ====== TradingView ======
-  function showChart(symbol) {
-    const container = document.getElementById("chart-container");
-    if (!container) return;
+  // function showChart(symbol) {
+  //   const container = document.getElementById("chart-container");
+  //   if (!container) return;
 
-    if (tvWidget) {
-      tvWidget.setSymbol(symbol);
-      return;
+  //   if (tvWidget) {
+  //     tvWidget.setSymbol(symbol);
+  //     return;
+  //   }
+
+  //   tvWidget = new TradingView.widget({
+  //     autosize: true,
+  //     symbol: symbol,
+  //     interval: "1",
+  //     timezone: "Etc/UTC",
+  //     theme: "dark",
+  //     style: "1",
+  //     hide_top_toolbar: false,
+  //     hide_legend: false,
+  //     container_id: "chart-container",
+  //   });
+  // }
+     function showChart(symbol, entryPrice = null, dir = null) {
+      const container = document.getElementById("chart-container");
+      if (!container) return;
+    
+      // === 1. Если TradingView уже создан — просто меняем символ ===
+      if (tvWidget && typeof tvWidget.chart === "function") {
+        try {
+          tvWidget.chart().setSymbol(symbol);
+    
+          // Если есть стрелка — добавляем после смены символа
+          if (entryPrice && !isNaN(parseFloat(entryPrice))) {
+            tvWidget.onChartReady(() => {
+              try {
+                tvWidget.chart().createMultipointShape(
+                  [{ price: parseFloat(entryPrice) }],
+                  {
+                    shape: dir === "SELL" ? "arrow_down" : "arrow_up",
+                    text: dir || "",
+                    lock: true,
+                    disableSelection: true
+                  }
+                );
+              } catch (e) {
+                console.warn("Arrow error:", e);
+              }
+            });
+          }
+          return;
+        } catch (e) {
+          console.warn("setSymbol error:", e);
+        }
+      }
+    
+      // === 2. Создаём виджет только один раз ===
+      container.innerHTML = "";
+    
+      try {
+        tvWidget = new TradingView.widget({
+          autosize: true,
+          symbol: symbol,
+          interval: "1",
+          timezone: "Etc/UTC",
+          theme: "dark",
+          style: "1",
+          locale: "ru",
+          hide_top_toolbar: false,
+          hide_legend: false,
+          container_id: "chart-container",
+        });
+      } catch (e) {
+        console.warn("TradingView init error:", e);
+        return;
+      }
+    
+      // === 3. После первой загрузки — добавляем стрелку ===
+      if (entryPrice && !isNaN(parseFloat(entryPrice))) {
+        tvWidget.onChartReady(() => {
+          try {
+            tvWidget.chart().createMultipointShape(
+              [{ price: parseFloat(entryPrice) }],
+              {
+                shape: dir === "SELL" ? "arrow_down" : "arrow_up",
+                text: dir || "",
+                lock: true,
+                disableSelection: true
+              }
+            );
+          } catch (e) {
+            console.warn("Arrow add error:", e);
+          }
+        });
+      }
     }
 
-    tvWidget = new TradingView.widget({
-      autosize: true,
-      symbol: symbol,
-      interval: "1",
-      timezone: "Etc/UTC",
-      theme: "dark",
-      style: "1",
-      hide_top_toolbar: false,
-      hide_legend: false,
-      container_id: "chart-container",
-    });
-  }
-  // let tvWidget = null;
-
-  // function safeChartInit(tvSymbol, entryPrice = null, dir = null) {
-  //   // === 1. Если виджет уже создан → просто меняем символ ===
-  //   if (tvWidget) {
+     
+  //   function showChart(symbol) {
+  //   const container = document.getElementById("chart-container");
+  //   if (!container) return;
+  
+  //   // === 1. Если график уже создан → просто меняем символ ===
+  //   if (tvWidget && typeof tvWidget.chart === "function") {
   //     try {
-  //       tvWidget.chart().setSymbol("FX:" + tvSymbol);
-  
-  //       // И если нужно — перерисовываем стрелку
-  //       if (entryPrice) {
-  //         tvWidget.onChartReady(() => {
-  //           try {
-  //             tvWidget.chart().createMultipointShape(
-  //               [{ price: parseFloat(entryPrice) }],
-  //               {
-  //                 shape: dir === "SELL" ? "arrow_down" : "arrow_up",
-  //                 text: dir || "",
-  //                 lock: true,
-  //                 disableSelection: true
-  //               }
-  //             );
-  //           } catch (e) {
-  //             console.warn("Arrow place error:", e);
-  //           }
-  //         });
-  //       }
-  
-  //       return; // важное — НЕ создаём новый widget
+  //       tvWidget.chart().setSymbol(symbol);
+  //       return;
   //     } catch (e) {
   //       console.warn("setSymbol error:", e);
   //     }
   //   }
   
-  //   // === 2. Виджет создаём только один раз ===
-  //   const container = document.getElementById("chart-container");
+  //   // === 2. Создаём график только один раз ===
   //   container.innerHTML = "";
   
   //   try {
   //     tvWidget = new TradingView.widget({
   //       autosize: true,
-  //       symbol: "FX:" + tvSymbol,
+  //       symbol: symbol,
   //       interval: "1",
   //       timezone: "Etc/UTC",
   //       theme: "dark",
   //       style: "1",
-  //       locale: "ru",
+  //       hide_top_toolbar: false,
+  //       hide_legend: false,
   //       container_id: "chart-container",
   //     });
   //   } catch (e) {
   //     console.warn("TradingView init error:", e);
-  //     return;
-  //   }
-  
-  //   // === 3. Когда график готов → добавляем стрелку, если есть ===
-  //   if (entryPrice && !isNaN(parseFloat(entryPrice))) {
-  //     tvWidget.onChartReady(() => {
-  //       try {
-  //         tvWidget.chart().createMultipointShape(
-  //           [{ price: parseFloat(entryPrice) }],
-  //           {
-  //             shape: dir === "SELL" ? "arrow_down" : "arrow_up",
-  //             text: dir || "",
-  //             lock: true,
-  //             disableSelection: true
-  //           }
-  //         );
-  //       } catch (e) {
-  //         console.warn("Arrow place error:", e);
-  //       }
-  //     });
   //   }
   // }
+
 
   // ====== История сигналов ======
   async function loadSignals(tvSymbol) {
