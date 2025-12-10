@@ -384,59 +384,59 @@
   }
 
   // ====== TradingView ======
-  // function showChart(symbol) {
-  //   const container = document.getElementById("chart-container");
-  //   if (!container) return;
+  function showChart(symbol) {
+    const container = document.getElementById("chart-container");
+    if (!container) return;
 
-  //   if (tvWidget) {
-  //     tvWidget.setSymbol(symbol);
-  //     return;
-  //   }
-
-  //   tvWidget = new TradingView.widget({
-  //     autosize: true,
-  //     symbol: symbol,
-  //     interval: "1",
-  //     timezone: "Etc/UTC",
-  //     theme: "dark",
-  //     style: "1",
-  //     hide_top_toolbar: false,
-  //     hide_legend: false,
-  //     container_id: "chart-container",
-  //   });
-  // }
-  let tvWidget = null;
-
-  function safeChartInit(tvSymbol, entryPrice = null, dir = null) {
-    // === 1. Если виджет уже создан → просто меняем символ ===
     if (tvWidget) {
-      try {
-        tvWidget.chart().setSymbol("FX:" + tvSymbol);
-  
-        // И если нужно — перерисовываем стрелку
-        if (entryPrice) {
-          tvWidget.onChartReady(() => {
-            try {
-              tvWidget.chart().createMultipointShape(
-                [{ price: parseFloat(entryPrice) }],
-                {
-                  shape: dir === "SELL" ? "arrow_down" : "arrow_up",
-                  text: dir || "",
-                  lock: true,
-                  disableSelection: true
-                }
-              );
-            } catch (e) {
-              console.warn("Arrow place error:", e);
-            }
-          });
-        }
-  
-        return; // важное — НЕ создаём новый widget
-      } catch (e) {
-        console.warn("setSymbol error:", e);
-      }
+      tvWidget.setSymbol(symbol);
+      return;
     }
+
+    tvWidget = new TradingView.widget({
+      autosize: true,
+      symbol: symbol,
+      interval: "1",
+      timezone: "Etc/UTC",
+      theme: "dark",
+      style: "1",
+      hide_top_toolbar: false,
+      hide_legend: false,
+      container_id: "chart-container",
+    });
+  }
+  // let tvWidget = null;
+
+  // function safeChartInit(tvSymbol, entryPrice = null, dir = null) {
+  //   // === 1. Если виджет уже создан → просто меняем символ ===
+  //   if (tvWidget) {
+  //     try {
+  //       tvWidget.chart().setSymbol("FX:" + tvSymbol);
+  
+  //       // И если нужно — перерисовываем стрелку
+  //       if (entryPrice) {
+  //         tvWidget.onChartReady(() => {
+  //           try {
+  //             tvWidget.chart().createMultipointShape(
+  //               [{ price: parseFloat(entryPrice) }],
+  //               {
+  //                 shape: dir === "SELL" ? "arrow_down" : "arrow_up",
+  //                 text: dir || "",
+  //                 lock: true,
+  //                 disableSelection: true
+  //               }
+  //             );
+  //           } catch (e) {
+  //             console.warn("Arrow place error:", e);
+  //           }
+  //         });
+  //       }
+  
+  //       return; // важное — НЕ создаём новый widget
+  //     } catch (e) {
+  //       console.warn("setSymbol error:", e);
+  //     }
+  //   }
   
     // === 2. Виджет создаём только один раз ===
     const container = document.getElementById("chart-container");
