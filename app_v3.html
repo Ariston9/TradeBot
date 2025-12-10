@@ -384,26 +384,66 @@
   }
 
   // ====== TradingView ======
-  function showChart(symbol) {
-    const container = document.getElementById("chart-container");
-    if (!container) return;
+  // function showChart(symbol) {
+  //   const container = document.getElementById("chart-container");
+  //   if (!container) return;
 
-    if (tvWidget) {
-      tvWidget.setSymbol(symbol);
+  //   if (tvWidget) {
+  //     tvWidget.setSymbol(symbol);
+  //     return;
+  //   }
+
+  //   tvWidget = new TradingView.widget({
+  //     autosize: true,
+  //     symbol: symbol,
+  //     interval: "1",
+  //     timezone: "Etc/UTC",
+  //     theme: "dark",
+  //     style: "1",
+  //     hide_top_toolbar: false,
+  //     hide_legend: false,
+  //     container_id: "chart-container",
+  //   });
+  // }
+  let tvWidget = null;
+
+  function safeChartInit(tvSymbol, entryPrice = null, dir = null) {
+    const container = document.getElementById("chart-container");
+    container.innerHTML = "";
+  
+    try {
+      tvWidget = new TradingView.widget({
+        autosize: true,
+        symbol: "FX:" + tvSymbol,
+        interval: "1",
+        timezone: "Etc/UTC",
+        theme: "dark",
+        style: "1",
+        locale: "ru",
+        container_id: "chart-container",
+      });
+    } catch (e) {
+      console.warn("TradingView init error:", e);
       return;
     }
-
-    tvWidget = new TradingView.widget({
-      autosize: true,
-      symbol: symbol,
-      interval: "1",
-      timezone: "Etc/UTC",
-      theme: "dark",
-      style: "1",
-      hide_top_toolbar: false,
-      hide_legend: false,
-      container_id: "chart-container",
-    });
+  
+    if (entryPrice && !isNaN(parseFloat(entryPrice))) {
+      tvWidget.onChartReady(() => {
+        try {
+          tvWidget.chart().createMultipointShape(
+            [{ price: parseFloat(entryPrice) }],
+            {
+              shape: dir === "SELL" ? "arrow_down" : "arrow_up",
+              text: dir || "",
+              lock: true,
+              disableSelection: true
+            }
+          );
+        } catch (e) {
+          console.warn("Arrow place error:", e);
+        }
+      });
+    }
   }
 
   // ====== История сигналов ======
