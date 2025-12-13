@@ -1,6 +1,9 @@
 # bot/api/server.py
 from fastapi import FastAPI, Query, WebSocket
 from pydantic import BaseModel
+import asyncio
+import time
+import json
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -8,8 +11,6 @@ from fastapi.responses import JSONResponse
 from bot.analyzer import analyze_pair_for_user
 from bot.config import PAIRS
 from bot.logger import read_signals_log
-import json
-import time
 
 
 app = FastAPI(title="TradeBot API")
