@@ -8,7 +8,7 @@ load_dotenv(BASE_DIR / ".env")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 TV_USERNAME = os.getenv("TV_USERNAME")
 TV_PASSWORD = os.getenv("TV_PASSWORD")
-PO_ENGINE_HTTP = "http://34.79.192.92:8000"  # свой VPS
+PO_ENGINE_HTTP = "http://34.79.192.92:9001"  # свой VPS
 SIGNAL_CHAT_ID = int(os.getenv("SIGNAL_CHAT_ID", "0"))
 API_URL = "https://philologic-resentfully-kimberlee.ngrok-free.dev" # "https://tradebot-production-74c0.up.railway.app/"
 
