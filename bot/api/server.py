@@ -1,5 +1,5 @@
 # bot/api/server.py
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, WebSocket
 from pydantic import BaseModel
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +8,8 @@ from fastapi.responses import JSONResponse
 from bot.analyzer import analyze_pair_for_user
 from bot.config import PAIRS
 from bot.logger import read_signals_log
+import json
+import time
 
 
 app = FastAPI(title="TradeBot API")
@@ -68,6 +70,18 @@ async def get_signal(pair: str = Query(...)):
         return JSONResponse({"error": err}, status_code=400)
 
     return JSONResponse(res)
+    
+@app.websocket("/ws")
+async def ws_price_feed(ws: WebSocket):
+    await ws.accept()
+    while True:
+        await ws.send_json({
+            "event": "tick",
+            "symbol": "EURUSD",
+            "price": 1.23456,
+            "time": time.time()
+        })
+        await asyncio.sleep(1)
 
 @app.get("/stats")
 def api_stats(symbol: str):
