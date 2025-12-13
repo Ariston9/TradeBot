@@ -10,7 +10,7 @@ TV_USERNAME = os.getenv("TV_USERNAME")
 TV_PASSWORD = os.getenv("TV_PASSWORD")
 PO_ENGINE_HTTP = "http://34.79.192.92:9001"  # свой VPS
 SIGNAL_CHAT_ID = int(os.getenv("SIGNAL_CHAT_ID", "0"))
-API_URL = "https://philologic-resentfully-kimberlee.ngrok-free.dev" # "https://tradebot-production-74c0.up.railway.app/"
+API_URL = "https://tradebot-production-74c0.up.railway.app/" #"https://philologic-resentfully-kimberlee.ngrok-free.dev" 
 
 DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
