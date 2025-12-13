@@ -10,6 +10,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, CallbackQuery
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.utils.text_decorations import html_decoration as hd
 
 from .config import BOT_TOKEN, PAIRS, API_URL
 from .analyzer import analyze_pair_for_user
@@ -87,7 +88,10 @@ def kb_main(pair_selected: str | None) -> InlineKeyboardMarkup:
 # ================== ТЕКСТ ПАНЕЛИ ==================
 
 def panel_text_header() -> str:
-    return "📊 *Trade Assistant — Анализ рынка*\n\nВыбери валютную пару:"
+    # HTML parse_mode: безопаснее, чем Markdown (не ломается на _ и спецсимволах)
+    return "📊 <b>Trade Assistant — Анализ рынка</b>
+
+Выбери валютную пару:"
 
 
 def panel_text_analysis(
@@ -98,38 +102,58 @@ def panel_text_analysis(
     updated_str: str,
     price: float | None = None,
 ) -> str:
+    # Экранируем пользовательские/динамические данные для HTML
+    pair_h = hd.quote(str(pair))
+    upd_h = hd.quote(str(updated_str))
+    price_h = f"<code>{price:.5f}</code>" if price is not None else None
+
     dir_txt = (
         "Покупать ✅" if direction == "BUY"
         else ("Продавать 🔻" if direction == "SELL" else "Ожидание ⚪")
     )
 
-    extra_price = f"\nЦена входа: {price:.5f}" if price is not None else ""
-
     text = (
-        f"{panel_text_header()}\n\n"
-        f"*Текущий анализ:* {pair}\n"
-        f"{dir_txt}\n"
-        f"🎯 Вероятность: *{prob:.1f}%*\n"
+        f"{panel_text_header()}
+
+"
+        f"<b>Текущий анализ:</b> {pair_h}
+"
+        f"{hd.quote(dir_txt)}
+"
+        f"🎯 Вероятность: <b>{prob:.1f}%</b>
+"
     )
 
     if expiry:
-        text += f"⏱ Рекомендуемая экспирация: {expiry} мин\n"
+        text += f"⏱ Рекомендуемая экспирация: <b>{int(expiry)}</b> мин
+"
     else:
-        text += "⏱ Сигнал слабый — сделку не открывать\n"
+        text += "⏱ Сигнал слабый — сделку не открывать
+"
 
-    text += f"📅 Обновлено: {updated_str}{extra_price}"
+    text += f"📅 Обновлено: {upd_h}"
+    if price_h:
+        text += f"
+Цена входа: {price_h}"
+
     return text
 
 
 def panel_text_stats() -> str:
     s = stats_last_24h()
     return (
-        f"{panel_text_header()}\n\n"
-        f"📈 *Статистика за 24 часа*\n"
-        f"Всего сигналов: *{s['total']}*\n"
-        f"Плюс: *{s['wins']}*\n"
-        f"Минус: *{s['losses']}*\n"
-        f"Проходимость: *{s['winrate']}%*"
+        f"{panel_text_header()}
+
+"
+        f"📈 <b>Статистика за 24 часа</b>
+"
+        f"Всего сигналов: <b>{int(s['total'])}</b>
+"
+        f"Плюс: <b>{int(s['wins'])}</b>
+"
+        f"Минус: <b>{int(s['losses'])}</b>
+"
+        f"Проходимость: <b>{hd.quote(str(s['winrate']))}%</b>"
     )
 
 
@@ -168,7 +192,7 @@ async def on_start(m: types.Message) -> None:
     SESS[user_id] = {"pair": None, "panel_msg_id": None}
 
     text = panel_text_header()
-    msg = await m.answer(text, reply_markup=kb_main(None), parse_mode="Markdown")
+    msg = await m.answer(text, reply_markup=kb_main(None), parse_mode="HTML")
 
     SESS[user_id]["panel_msg_id"] = msg.message_id
 
@@ -191,9 +215,9 @@ async def on_pick_pair(cb: CallbackQuery) -> None:
 
     # показываем «идёт анализ…»
     await cb.message.edit_text(
-        f"{panel_text_header()}\n\n⏳ Идёт анализ {pair} на M1, M5, M15...",
+        f"{panel_text_header()}\n\n⏳ Идёт анализ <b>{hd.quote(str(pair))}</b> на M1, M5, M15...",
         reply_markup=kb_main(pair),
-        parse_mode="Markdown",
+        parse_mode="HTML",
     )
 
     res, err = await analyze_pair_for_user(user_id, pair)
@@ -206,17 +230,17 @@ async def on_pick_pair(cb: CallbackQuery) -> None:
             err_text = str(err)
 
         await cb.message.edit_text(
-            f"{panel_text_header()}\n\n❌ {err_text}",
+            f"{panel_text_header()}\n\n❌ {hd.quote(str(err_text))}",
             reply_markup=kb_main(pair),
-            parse_mode="Markdown",
+            parse_mode="HTML",
         )
         return
 
     if not res:
         await cb.message.edit_text(
-            f"{panel_text_header()}\n\n⚪ Сигнал не найден или условия не выполнены для {pair}.",
+            f"{panel_text_header()}\n\n⚪ Сигнал не найден или условия не выполнены для <b>{hd.quote(str(pair))}</b>.",
             reply_markup=kb_main(pair),
-            parse_mode="Markdown",
+            parse_mode="HTML",
         )
         return
 
@@ -229,7 +253,7 @@ async def on_pick_pair(cb: CallbackQuery) -> None:
         price=res.get("entry_price"),
     )
 
-    await cb.message.edit_text(text, reply_markup=kb_main(pair), parse_mode="Markdown")
+    await cb.message.edit_text(text, reply_markup=kb_main(pair), parse_mode="HTML")
 
 
 @dp.callback_query(lambda c: c.data == "ACT|REFRESH")
@@ -245,9 +269,9 @@ async def on_refresh(cb: CallbackQuery) -> None:
     upd = datetime.now(timezone.utc).strftime("%H:%M UTC")
 
     await cb.message.edit_text(
-        f"{panel_text_header()}\n\n⏳ Обновляю анализ {pair}...",
+        f"{panel_text_header()}\n\n⏳ Обновляю анализ <b>{hd.quote(str(pair))}</b>...",
         reply_markup=kb_main(pair),
-        parse_mode="Markdown",
+        parse_mode="HTML",
     )
 
     res, err = await analyze_pair_for_user(user_id, pair)
@@ -259,17 +283,17 @@ async def on_refresh(cb: CallbackQuery) -> None:
             err_text = str(err)
 
         await cb.message.edit_text(
-            f"{panel_text_header()}\n\n❌ {err_text}",
+            f"{panel_text_header()}\n\n❌ {hd.quote(str(err_text))}",
             reply_markup=kb_main(pair),
-            parse_mode="Markdown",
+            parse_mode="HTML",
         )
         return
 
     if not res:
         await cb.message.edit_text(
-            f"{panel_text_header()}\n\n⚪ Сигнал не найден или условия не выполнены для {pair}.",
+            f"{panel_text_header()}\n\n⚪ Сигнал не найден или условия не выполнены для <b>{hd.quote(str(pair))}</b>.",
             reply_markup=kb_main(pair),
-            parse_mode="Markdown",
+            parse_mode="HTML",
         )
         return
 
@@ -282,7 +306,7 @@ async def on_refresh(cb: CallbackQuery) -> None:
         price=res.get("entry_price"),
     )
 
-    await cb.message.edit_text(text, reply_markup=kb_main(pair), parse_mode="Markdown")
+    await cb.message.edit_text(text, reply_markup=kb_main(pair), parse_mode="HTML")
 
 
 @dp.callback_query(lambda c: c.data == "ACT|STATS")
@@ -294,9 +318,9 @@ async def on_stats(cb: CallbackQuery) -> None:
     pie_buf = build_pie(stats["wins"], stats["losses"])
 
     if pie_buf:
-        await cb.message.answer_photo(pie_buf, caption=text, parse_mode="Markdown")
+        await cb.message.answer_photo(pie_buf, caption=text, parse_mode="HTML")
     else:
-        await cb.message.edit_text(text, reply_markup=kb_main(SESS.get(cb.from_user.id, {}).get("pair")), parse_mode="Markdown")
+        await cb.message.edit_text(text, reply_markup=kb_main(SESS.get(cb.from_user.id, {}).get("pair")), parse_mode="HTML")
 
     await cb.answer()
 
