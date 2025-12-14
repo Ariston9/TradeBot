@@ -1,93 +1,88 @@
 # bot/pocket_po_feed.py
 import asyncio
 import json
-import base64
-import time
 import websockets
 import requests
 
-CDP_URL = "ws://127.0.0.1:9222/devtools/page/"
-TICK_SERVER = "http://127.0.0.1:9001/tick"
+# Структура:
+# CURRENT_PO_PRICE = {
+#     "EURUSD": {"price": 1.07852, "time": 1733591221.51},
+#     "EURUSD_otc": {"price": 1.07810, "time": 1733591220.12},
+# }
+CURRENT_PO_PRICE = {}
+
+# Укажи свой VPS или локальный хост где работает PO Engine
+DEVTOOLS_URL = "http://127.0.0.1:9222/json"
 
 
-async def connect_to_po_tab():
-    import subprocess, json
-
-    data = subprocess.check_output(
-        ["curl", "-s", "http://127.0.0.1:9222/json"]
-    )
-    tabs = json.loads(data)
-
-    for tab in tabs:
-        if "pocketoption.com" in tab.get("url", ""):
-            return tab["webSocketDebuggerUrl"]
-
-    raise RuntimeError("PocketOption tab not found")
+def get_po_tab():
+    tabs = requests.get(DEVTOOLS_URL).json()
+    for t in tabs:
+        if "pocketoption.com" in t.get("url", ""):
+            return t["webSocketDebuggerUrl"]
+    return None
 
 
-def send_tick(symbol, price, ts):
-    requests.post(
-        TICK_SERVER,
-        json={
-            "symbol": symbol,
-            "price": price,
-            "time": ts
-        },
-        timeout=1
-    )
+async def po_ws_loop():
+    ws_url = get_po_tab()
+    if not ws_url:
+        print("❌ PocketOption tab not found")
+        return
 
+    print("✅ Found PO tab:", ws_url)
 
-async def po_cdp_loop(ws_url):
-    async with websockets.connect(ws_url, max_size=None) as ws:
+    import websockets
+
+    async with websockets.connect(ws_url) as ws:
         await ws.send(json.dumps({
             "id": 1,
-            "method": "Network.enable"
+            "method": "Runtime.enable"
         }))
 
-        print("🟢 CDP connected, listening WS frames")
+        await ws.send(json.dumps({
+            "id": 2,
+            "method": "Runtime.evaluate",
+            "params": {
+                "expression": """
+                (function() {
+                    if (window.__PO_HOOKED__) return;
+                    window.__PO_HOOKED__ = true;
 
-        async for msg in ws:
-            data = json.loads(msg)
+                    const orig = WebSocket.prototype.send;
+                    WebSocket.prototype.send = function(data) {
+                        try {
+                            if (typeof data === "string" && data.includes("tick")) {
+                                window.postMessage({type: "PO_TICK", data}, "*");
+                            }
+                        } catch(e){}
+                        return orig.apply(this, arguments);
+                    };
+                })();
+                """
+            }
+        }))
 
-            if data.get("method") != "Network.webSocketFrameReceived":
-                continue
+        print("⚡ Hook injected, waiting ticks...")
 
-            payload = data["params"]["response"]["payloadData"]
-
-            try:
-                raw = base64.b64decode(payload)
-            except:
-                continue
-
-            # PO sends binary arrays
-            if not raw.startswith(b"["):
-                continue
-
-            try:
-                arr = json.loads(raw.decode("utf-8"))
-            except:
-                continue
-
-            # example: ["EURUSD_otc", 1733591234.12, 1.07852]
-            if (
-                isinstance(arr, list)
-                and len(arr) >= 3
-                and isinstance(arr[0], str)
-                and isinstance(arr[2], (int, float))
-            ):
-                symbol = arr[0]
-                ts = float(arr[1])
-                price = float(arr[2])
-
-                print(f"TICK {symbol} {price}")
-                send_tick(symbol, price, ts)
-
-
-async def main():
-    ws_url = await connect_to_po_tab()
-    print("🔗 Found PO tab:", ws_url)
-    await po_cdp_loop(ws_url)
+        while True:
+            msg = await ws.recv()
+            if "PO_TICK" in msg:
+                print("RAW:", msg)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(po_ws_loop())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
