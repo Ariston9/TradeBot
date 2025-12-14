@@ -11,7 +11,7 @@ import websockets
 # CURRENT_PO_PRICE = {}
 
 # Укажи свой VPS или локальный хост где работает PO Engine
-PO_REAL_WS = "wss://ws.pocketoption.com/socket.io/?EIO=3&transport=websocket"
+PO_WS_URL = "wss://ws.pocketoption.com/socket.io/?EIO=3&transport=websocket"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0",
@@ -58,6 +58,7 @@ async def po_ws_loop():
 
 if __name__ == "__main__":
     asyncio.run(po_ws_loop())
+
 
 
 
