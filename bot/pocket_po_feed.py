@@ -11,55 +11,49 @@ import websockets
 # CURRENT_PO_PRICE = {}
 
 # Укажи свой VPS или локальный хост где работает PO Engine
-PO_WS_URL = "ws://127.0.0.1:9222/devtools/page/42113CC80557FA6E51DA6B281359FC94"
+PO_WS_URL = "ws://127.0.0.1:9222/devtools/devtools/browser"
 
 
 async def po_ws_loop():
-    # """Подключение к PO Streaming Engine v10."""
-    # global CURRENT_PO_PRICE
+    """Подключение к PO Streaming Engine v10."""
+    global CURRENT_PO_PRICE
 
     while True:
         try:
             print("⏳ Connecting to PO Engine WS:", PO_WS_URL)
             async with websockets.connect(
-                PO_WS_URL, ping_interval=None
+                PO_WS_URL, ping_interval=20, ping_timeout=20
             ) as ws:
-            
-                print("⚡ Connected to Chrome DevTools")
-            
-                # 🔑 ВКЛЮЧАЕМ NETWORK
-                await ws.send(json.dumps({
-                    "id": 1,
-                    "method": "Network.enable"
-                }))
-            
-                # 🔑 ВКЛЮЧАЕМ PAGE
-                await ws.send(json.dumps({
-                    "id": 2,
-                    "method": "Page.enable"
-                }))
-            
-                print("📡 Network & Page enabled, waiting for frames...")
-            
+
+                print("⚡ Connected to PO Streaming Engine v10")
+
                 async for raw in ws:
-                    print("RAW >>>", raw)
+                    try:
+                        data = json.loads(raw)
+                    except:
+                        continue
 
-                    # symbol = data.get("symbol")
-                    # price = data.get("price")
-                    # ts = data.get("time")
+                    if data.get("event") != "tick":
+                        continue
 
-                    # if not symbol or price is None:
-                    #     continue
+                    symbol = data.get("symbol")
+                    price = data.get("price")
+                    ts = data.get("time")
 
-                    # # Сохраняем последний тик
-                    # CURRENT_PO_PRICE[symbol] = {
-                    #     "price": float(price),
-                    #     "time": float(ts)
-                    # }
+                    if not symbol or price is None:
+                        continue
+
+                    # Сохраняем последний тик
+                    CURRENT_PO_PRICE[symbol] = {
+                        "price": float(price),
+                        "time": float(ts)
+                    }
 
         except Exception as e:
             print("❌ PO WS error:", e)
             await asyncio.sleep(3)
+
+
 
 
 
