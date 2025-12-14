@@ -1,5 +1,5 @@
 # bot/api/server.py
-from fastapi import FastAPI, Query, WebSocket
+from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 import asyncio
 import time
@@ -14,6 +14,7 @@ from bot.logger import read_signals_log
 
 
 app = FastAPI(title="TradeBot API")
+PO_ENGINE_WS = "ws://127.0.0.1:9002/ws"
 
 
 app.add_middleware(
@@ -72,17 +73,69 @@ async def get_signal(pair: str = Query(...)):
 
     return JSONResponse(res)
     
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.websocket("/ws")
 async def ws_price_feed(ws: WebSocket):
+    """
+    Проксирует реальные тики из PO Engine v10
+    Клиентам (WebApp / Bot / TV)
+    """
     await ws.accept()
-    while True:
-        await ws.send_json({
-            "event": "tick",
-            "symbol": "EURUSD",
-            "price": 1.23456,
-            "time": time.time()
-        })
-        await asyncio.sleep(1)
+    print("✅ WS client connected")
+
+    try:
+        async with websockets.connect(PO_ENGINE_WS) as po_ws:
+            print("✅ Connected to PO Engine")
+
+            while True:
+                try:
+                    raw = await po_ws.recv()
+                except websockets.ConnectionClosed:
+                    print("❌ PO Engine disconnected")
+                    break
+
+                try:
+                    data = json.loads(raw)
+                except json.JSONDecodeError:
+                    continue
+
+                # работаем ТОЛЬКО с тиками
+                if data.get("event") != "tick":
+                    continue
+
+                payload = {
+                    "event": "tick",
+                    "symbol": data.get("symbol"),
+                    "price": data.get("price"),
+                    "time": data.get("time", time.time()),
+                }
+
+                try:
+                    await ws.send_json(payload)
+                except WebSocketDisconnect:
+                    print("❌ Client disconnected")
+                    break
+                except Exception as e:
+                    print("❌ WS send error:", e)
+                    break
+
+    except Exception as e:
+        print("❌ WS fatal error:", e)
+
+    finally:
+        await safe_close(ws)
+        print("🛑 WS session closed")
+
+
+async def safe_close(ws: WebSocket):
+    try:
+        await ws.close()
+    except Exception:
+        pass
 
 @app.get("/stats")
 def api_stats(symbol: str):
