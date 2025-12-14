@@ -28,13 +28,7 @@ async def po_ws_loop():
                 print("⚡ Connected to PO Streaming Engine v10")
 
                 async for raw in ws:
-                    try:
-                        data = json.loads(raw)
-                    except:
-                        continue
-
-                    if data.get("event") != "tick":
-                        continue
+                    print("RAW:", raw)
 
                     symbol = data.get("symbol")
                     price = data.get("price")
@@ -52,6 +46,7 @@ async def po_ws_loop():
         except Exception as e:
             print("❌ PO WS error:", e)
             await asyncio.sleep(3)
+
 
 
 
