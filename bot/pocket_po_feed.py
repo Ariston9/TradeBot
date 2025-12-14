@@ -22,10 +22,10 @@ async def po_ws_loop():
     print("⏳ Connecting to PocketOption real WS")
 
     async with websockets.connect(
-        PO_REAL_WS,
-        extra_headers=HEADERS,
+        PO_WS_URL,
         ping_interval=None
-    ) as ws:
+   ) as ws:
+
         print("⚡ Connected to PocketOption WS")
 
         async for msg in ws:
@@ -58,6 +58,7 @@ async def po_ws_loop():
 
 if __name__ == "__main__":
     asyncio.run(po_ws_loop())
+
 
 
 
