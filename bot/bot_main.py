@@ -2,6 +2,7 @@ import asyncio
 import threading
 import time
 import uvicorn
+import html as hd
 from datetime import datetime, timezone
 from typing import Dict, Any
 from .autoscan import autoscan_loop
@@ -87,7 +88,8 @@ def kb_main(pair_selected: str | None) -> InlineKeyboardMarkup:
 # ================== ТЕКСТ ПАНЕЛИ ==================
 
 def panel_text_header() -> str:
-    return "📊 *Trade Assistant — Анализ рынка*\n\nВыбери валютную пару:"
+    # HTML parse_mode: не ломается на _ и спецсимволах (OTC пары, etc.)
+    return "📊 <b>Trade Assistant — Анализ рынка</b>\nВыбери валютную пару:"
 
 
 def panel_text_analysis(
@@ -98,27 +100,32 @@ def panel_text_analysis(
     updated_str: str,
     price: float | None = None,
 ) -> str:
+    pair_h = hd.escape(str(pair))
+    upd_h = hd.escape(str(updated_str))
+
     dir_txt = (
         "Покупать ✅" if direction == "BUY"
         else ("Продавать 🔻" if direction == "SELL" else "Ожидание ⚪")
     )
 
-    extra_price = f"\nЦена входа: {price:.5f}" if price is not None else ""
+    parts: list[str] = [
+        panel_text_header(),
+        "",
+        f"<b>Текущий анализ:</b> {pair_h}",
+        hd.escape(dir_txt),
+        f"🎯 Вероятность: <b>{prob:.1f}%</b>",
+    ]
 
-    text = (
-        f"{panel_text_header()}\n\n"
-        f"*Текущий анализ:* {pair}\n"
-        f"{dir_txt}\n"
-        f"🎯 Вероятность: *{prob:.1f}%*\n"
-    )
+    if expiry is not None:
+        parts.append(f"⏳ Экспирация: <b>{int(expiry)} мин</b>")
 
-    if expiry:
-        text += f"⏱ Рекомендуемая экспирация: {expiry} мин\n"
-    else:
-        text += "⏱ Сигнал слабый — сделку не открывать\n"
+    if price is not None:
+        parts.append(f"💰 Цена входа: <code>{price:.5f}</code>")
 
-    text += f"📅 Обновлено: {updated_str}{extra_price}"
-    return text
+    parts.append(f"🕒 Обновлено: <code>{upd_h}</code>")
+
+    return "\n".join(parts)
+
 
 
 def panel_text_stats() -> str:
@@ -168,7 +175,7 @@ async def on_start(m: types.Message) -> None:
     SESS[user_id] = {"pair": None, "panel_msg_id": None}
 
     text = panel_text_header()
-    msg = await m.answer(text, reply_markup=kb_main(None), parse_mode="Markdown")
+    msg = await m.answer(text, reply_markup=kb_main(None), parse_mode="HTML")
 
     SESS[user_id]["panel_msg_id"] = msg.message_id
 
@@ -183,6 +190,7 @@ async def on_pick_pair(cb: CallbackQuery) -> None:
 
     user_id = cb.from_user.id
     pair = cb.data.split("|", 1)[1]
+    pair_h = hd.escape(pair)
 
     sess = SESS.setdefault(user_id, {"pair": None, "panel_msg_id": cb.message.message_id})
     sess["pair"] = pair
@@ -191,9 +199,9 @@ async def on_pick_pair(cb: CallbackQuery) -> None:
 
     # показываем «идёт анализ…»
     await cb.message.edit_text(
-        f"{panel_text_header()}\n\n⏳ Идёт анализ {pair} на M1, M5, M15...",
+        f"{panel_text_header()}\n\n⏳ Идёт анализ {pair_h} на M1, M5, M15...",
         reply_markup=kb_main(pair),
-        parse_mode="Markdown",
+        parse_mode="HTML",
     )
 
     res, err = await analyze_pair_for_user(user_id, pair)
@@ -201,22 +209,22 @@ async def on_pick_pair(cb: CallbackQuery) -> None:
     if err:
         # тут именно человекочитаемая строка, а не dict
         if isinstance(err, dict) and "error" in err:
-            err_text = err["error"]
+            err_text = hd.escape(str(err.get("error", "")))
         else:
-            err_text = str(err)
+            err_text = hd.escape(str(err))
 
         await cb.message.edit_text(
             f"{panel_text_header()}\n\n❌ {err_text}",
             reply_markup=kb_main(pair),
-            parse_mode="Markdown",
+            parse_mode="HTML",
         )
         return
 
     if not res:
         await cb.message.edit_text(
-            f"{panel_text_header()}\n\n⚪ Сигнал не найден или условия не выполнены для {pair}.",
+            f"{panel_text_header()}\n\n⚪ Сигнал не найден или условия не выполнены для {pair_h}.",
             reply_markup=kb_main(pair),
-            parse_mode="Markdown",
+            parse_mode="HTML",
         )
         return
 
@@ -229,7 +237,7 @@ async def on_pick_pair(cb: CallbackQuery) -> None:
         price=res.get("entry_price"),
     )
 
-    await cb.message.edit_text(text, reply_markup=kb_main(pair), parse_mode="Markdown")
+    await cb.message.edit_text(text, reply_markup=kb_main(pair), parse_mode="HTML")
 
 
 @dp.callback_query(lambda c: c.data == "ACT|REFRESH")
@@ -247,29 +255,29 @@ async def on_refresh(cb: CallbackQuery) -> None:
     await cb.message.edit_text(
         f"{panel_text_header()}\n\n⏳ Обновляю анализ {pair}...",
         reply_markup=kb_main(pair),
-        parse_mode="Markdown",
+        parse_mode="HTML",
     )
 
     res, err = await analyze_pair_for_user(user_id, pair)
 
     if err:
         if isinstance(err, dict) and "error" in err:
-            err_text = err["error"]
+            err_text = hd.escape(str(err.get("error", "")))
         else:
-            err_text = str(err)
+            err_text = hd.escape(str(err))
 
         await cb.message.edit_text(
             f"{panel_text_header()}\n\n❌ {err_text}",
             reply_markup=kb_main(pair),
-            parse_mode="Markdown",
+            parse_mode="HTML",
         )
         return
 
     if not res:
         await cb.message.edit_text(
-            f"{panel_text_header()}\n\n⚪ Сигнал не найден или условия не выполнены для {pair}.",
+            f"{panel_text_header()}\n\n⚪ Сигнал не найден или условия не выполнены для {pair_h}.",
             reply_markup=kb_main(pair),
-            parse_mode="Markdown",
+            parse_mode="HTML",
         )
         return
 
@@ -282,7 +290,7 @@ async def on_refresh(cb: CallbackQuery) -> None:
         price=res.get("entry_price"),
     )
 
-    await cb.message.edit_text(text, reply_markup=kb_main(pair), parse_mode="Markdown")
+    await cb.message.edit_text(text, reply_markup=kb_main(pair), parse_mode="HTML")
 
 
 @dp.callback_query(lambda c: c.data == "ACT|STATS")
@@ -294,9 +302,9 @@ async def on_stats(cb: CallbackQuery) -> None:
     pie_buf = build_pie(stats["wins"], stats["losses"])
 
     if pie_buf:
-        await cb.message.answer_photo(pie_buf, caption=text, parse_mode="Markdown")
+        await cb.message.answer_photo(pie_buf, caption=text, parse_mode="HTML")
     else:
-        await cb.message.edit_text(text, reply_markup=kb_main(SESS.get(cb.from_user.id, {}).get("pair")), parse_mode="Markdown")
+        await cb.message.edit_text(text, reply_markup=kb_main(SESS.get(cb.from_user.id, {}).get("pair")), parse_mode="HTML")
 
     await cb.answer()
 
