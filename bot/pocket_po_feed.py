@@ -30,22 +30,23 @@ async def po_ws_loop():
                 async for raw in ws:
                     print("RAW:", raw)
 
-                    symbol = data.get("symbol")
-                    price = data.get("price")
-                    ts = data.get("time")
+                    # symbol = data.get("symbol")
+                    # price = data.get("price")
+                    # ts = data.get("time")
 
-                    if not symbol or price is None:
-                        continue
+                    # if not symbol or price is None:
+                    #     continue
 
-                    # Сохраняем последний тик
-                    CURRENT_PO_PRICE[symbol] = {
-                        "price": float(price),
-                        "time": float(ts)
-                    }
+                    # # Сохраняем последний тик
+                    # CURRENT_PO_PRICE[symbol] = {
+                    #     "price": float(price),
+                    #     "time": float(ts)
+                    # }
 
         except Exception as e:
             print("❌ PO WS error:", e)
             await asyncio.sleep(3)
+
 
 
 
