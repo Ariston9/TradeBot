@@ -22,13 +22,27 @@ async def po_ws_loop():
         try:
             print("⏳ Connecting to PO Engine WS:", PO_WS_URL)
             async with websockets.connect(
-                PO_WS_URL, ping_interval=20, ping_timeout=20
+                PO_WS_URL, ping_interval=None
             ) as ws:
-
-                print("⚡ Connected to PO Streaming Engine v10")
-
+            
+                print("⚡ Connected to Chrome DevTools")
+            
+                # 🔑 ВКЛЮЧАЕМ NETWORK
+                await ws.send(json.dumps({
+                    "id": 1,
+                    "method": "Network.enable"
+                }))
+            
+                # 🔑 ВКЛЮЧАЕМ PAGE
+                await ws.send(json.dumps({
+                    "id": 2,
+                    "method": "Page.enable"
+                }))
+            
+                print("📡 Network & Page enabled, waiting for frames...")
+            
                 async for raw in ws:
-                    print("RAW:", raw)
+                    print("RAW >>>", raw)
 
                     # symbol = data.get("symbol")
                     # price = data.get("price")
@@ -46,6 +60,7 @@ async def po_ws_loop():
         except Exception as e:
             print("❌ PO WS error:", e)
             await asyncio.sleep(3)
+
 
 
 
