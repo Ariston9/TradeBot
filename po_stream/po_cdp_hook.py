@@ -80,7 +80,7 @@ def push_tick_to_server_history(symbol: str, period: int, candles):
 def detect_account_from_url(url: str) -> str:
           if "/demo-quick-high-low/" in url:
               return "DEMO"
-          if "/quick-high-low/" in url:
+          if "/quick-high-low/USD/" in url:
               return "REAL"
           return "UNKNOWN"
 
@@ -250,4 +250,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
