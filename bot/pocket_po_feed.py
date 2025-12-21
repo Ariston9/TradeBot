@@ -53,19 +53,22 @@ async def po_ws_loop():
             payload = data["params"]["response"]["payloadData"]
 
             # В payload лежит цена (без ключей)
-            if isinstance(payload, str) and "." in payload:
-                for part in payload.replace(",", " ").split():
-                    try:
-                        price = float(part)
-                        ts = asyncio.get_event_loop().time()
+            # if isinstance(payload, str) and "." in payload:
+            #     for part in payload.replace(",", " ").split():
+            #         try:
+            #             price = float(part)
+            #             ts = asyncio.get_event_loop().time()
 
-                        CURRENT_PO_PRICE["PO"] = {
-                            "price": price,
-                            "time": ts
-                        }
+            #             CURRENT_PO_PRICE["PO"] = {
+            #                 "price": price,
+            #                 "time": ts
+            #             }
 
                         # print("TICK:", price)
-                        print("RAW FRAME:", msg)
+                        print("RAW PAYLOAD:")
+                        print(payload)
+                        print("=" * 80)
+
 
                         break
                     except:
@@ -75,6 +78,7 @@ async def po_ws_loop():
 
 if __name__ == "__main__":
     asyncio.run(po_ws_loop())
+
 
 
 
