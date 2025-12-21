@@ -96,7 +96,7 @@ def start_ws_server():
 
 # ====== Вспомогательные функции для свечей =============================
 
-def on_po_tick(symbol: str, ts: float, price: float):
+def on_po_tick(symbol: str, ts: float, price: float, account: str = "REAL"):
     """
     Обработка одного тика от PocketOption:
     - обновляем все таймфреймы
@@ -107,6 +107,7 @@ def on_po_tick(symbol: str, ts: float, price: float):
         "symbol": symbol,
         "time": ts,
         "price": price,
+        "account": account,
     }
 
     # Обновляем свечи по всем таймфреймам
@@ -284,7 +285,8 @@ def api_receive_tick():
         symbol = str(data["symbol"])
         ts = float(data["time"])
         price = float(data["price"])
-        on_po_tick(symbol, ts, price)
+        account = data.get("account", "REAL")
+        on_po_tick(symbol, ts, price, account)
 
     elif msg_type == "history":
         symbol = str(data["symbol"])
@@ -316,3 +318,4 @@ if __name__ == "__main__":
 
     # HTTP (Flask) в главном потоке
     start_http()
+
