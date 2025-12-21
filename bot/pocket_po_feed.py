@@ -52,7 +52,7 @@ async def po_ws_loop():
 
             payload = data["params"]["response"]["payloadData"]
 
-            В payload лежит цена (без ключей)
+            # payload лежит цена (без ключей)
             if isinstance(payload, str) and "." in payload:
                 for part in payload.replace(",", " ").split():
                     try:
@@ -78,6 +78,7 @@ async def po_ws_loop():
 
 if __name__ == "__main__":
     asyncio.run(po_ws_loop())
+
 
 
 
