@@ -1,88 +1,64 @@
 # bot/pocket_po_feed.py
 import asyncio
 import json
+import time
 import websockets
 import requests
 
-# Структура:
-# CURRENT_PO_PRICE = {
-#     "EURUSD": {"price": 1.07852, "time": 1733591221.51},
-#     "EURUSD_otc": {"price": 1.07810, "time": 1733591220.12},
-# }
+DEBUG_URL = "http://127.0.0.1:9222/json"
+
 CURRENT_PO_PRICE = {}
 
-# Укажи свой VPS или локальный хост где работает PO Engine
-DEVTOOLS_URL = "http://127.0.0.1:9222/json"
+def get_all_targets():
+    return requests.get(DEBUG_URL, timeout=2).json()
 
-
-def get_po_tab():
-    tabs = requests.get(DEVTOOLS_URL).json()
-    for t in tabs:
-        if "pocketoption.com" in t.get("url", ""):
-            return t["webSocketDebuggerUrl"]
-    return None
-
-
-async def po_ws_loop():
-    ws_url = get_po_tab()
-    if not ws_url:
-        print("❌ PocketOption tab not found")
-        return
-
-    print("✅ Found PO tab:", ws_url)
-
-    import websockets
-
-    async with websockets.connect(ws_url) as ws:
+async def listen_target(ws_url):
+    async with websockets.connect(ws_url, ping_interval=None) as ws:
         await ws.send(json.dumps({
             "id": 1,
-            "method": "Runtime.enable"
+            "method": "Network.enable"
         }))
 
-        await ws.send(json.dumps({
-            "id": 2,
-            "method": "Runtime.evaluate",
-            "params": {
-                "expression": """
-                (function() {
-                    if (window.__PO_HOOKED__) return;
-                    window.__PO_HOOKED__ = true;
+        async for msg in ws:
+            data = json.loads(msg)
 
-                    const orig = WebSocket.prototype.send;
-                    WebSocket.prototype.send = function(data) {
-                        try {
-                            if (typeof data === "string" && data.includes("tick")) {
-                                window.postMessage({type: "PO_TICK", data}, "*");
-                            }
-                        } catch(e){}
-                        return orig.apply(this, arguments);
-                    };
-                })();
-                """
-            }
-        }))
+            if data.get("method") != "Network.webSocketFrameReceived":
+                continue
 
-        print("⚡ Hook injected, waiting ticks...")
+            payload = data["params"]["response"]["payloadData"]
 
-        while True:
-            msg = await ws.recv()
-            if "PO_TICK" in msg:
-                print("RAW:", msg)
+            # 🔎 фильтр тиков (как у тебя локально)
+            if '"price"' not in payload:
+                continue
 
+            try:
+                j = json.loads(payload)
+            except:
+                continue
+
+            symbol = j.get("symbol")
+            price = j.get("price")
+
+            if symbol and price:
+                CURRENT_PO_PRICE[symbol] = {
+                    "price": float(price),
+                    "time": time.time()
+                }
+                print("TICK:", symbol, price)
+
+async def main():
+    targets = get_all_targets()
+
+    tasks = []
+    for t in targets:
+        ws_url = t.get("webSocketDebuggerUrl")
+        if not ws_url:
+            continue
+
+        print("🔌 Attach:", t["type"], t.get("url"))
+        tasks.append(asyncio.create_task(listen_target(ws_url)))
+
+    await asyncio.gather(*tasks)
 
 if __name__ == "__main__":
-    asyncio.run(po_ws_loop())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    asyncio.run(main())
