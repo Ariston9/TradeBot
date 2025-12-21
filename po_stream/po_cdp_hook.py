@@ -77,6 +77,13 @@ def push_tick_to_server_history(symbol: str, period: int, candles):
     except Exception as e:
         print("Push history error:", e)
 
+def detect_account_from_url(url: str) -> str:
+          if "/demo-quick-high-low/" in url:
+              return "DEMO"
+          if "/quick-high-low/" in url:
+              return "REAL"
+          return "UNKNOWN"
+
 
 # ========= ОБРАБОТКА СОБЫТИЙ DEVTOOLS ======================================
 
@@ -130,8 +137,10 @@ def handle_event(message: dict):
                     ts = float(obj[1])
                     price = float(obj[2])
 
+                    account = detect_account_from_url(current_tab_url)
+
                     print(f"[TICK] {symbol} {price} @ {ts}")
-                    push_tick_to_server_tick(symbol, ts, price)
+                    push_tick_to_server_tick(symbol, ts, price, account)
 
                 # ===== BIN TYPE 2 — история: ["EURUSD_otc", 60, [[ts, price], ...]]
                 elif (
@@ -214,9 +223,15 @@ def main():
     po_tab = None
     for t in tabs:
         url = t.get("url", "")
-        if "pocketoption.com" in url and "demo-quick-high-low" in url:
+        PO_TRADE_URLS = (
+             "/ru/cabinet/quick-high-low/USD/",    # REAL
+             "/ru/cabinet/demo-quick-high-low/",   # DEMO
+         )
+
+         if any(u in url for u in PO_TRADE_URLS):
+
             po_tab = t
-            break
+            break    
 
     if not po_tab:
         print("❌ Не найдено активной вкладки PocketOption /demo-quick-high-low/")
@@ -235,3 +250,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
