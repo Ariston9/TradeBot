@@ -64,7 +64,9 @@ async def po_ws_loop():
                             "time": ts
                         }
 
-                        print("TICK:", price)
+                        # print("TICK:", price)
+                        print("RAW FRAME:", msg)
+
                         break
                     except:
                         pass
@@ -73,6 +75,7 @@ async def po_ws_loop():
 
 if __name__ == "__main__":
     asyncio.run(po_ws_loop())
+
 
 
 
