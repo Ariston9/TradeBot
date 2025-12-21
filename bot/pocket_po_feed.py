@@ -31,47 +31,49 @@ async def po_ws_loop():
 
     print("✅ Found PO tab:", ws_url)
 
-    import websockets
-
-    async with websockets.connect(ws_url) as ws:
+    async with websockets.connect(ws_url, max_size=None) as ws:
+        # включаем Network
         await ws.send(json.dumps({
             "id": 1,
-            "method": "Runtime.enable"
+            "method": "Network.enable"
         }))
 
-        await ws.send(json.dumps({
-            "id": 2,
-            "method": "Runtime.evaluate",
-            "params": {
-                "expression": """
-                (function() {
-                    if (window.__PO_HOOKED__) return;
-                    window.__PO_HOOKED__ = true;
-
-                    const orig = WebSocket.prototype.send;
-                    WebSocket.prototype.send = function(data) {
-                        try {
-                            if (typeof data === "string" && data.includes("tick")) {
-                                window.postMessage({type: "PO_TICK", data}, "*");
-                            }
-                        } catch(e){}
-                        return orig.apply(this, arguments);
-                    };
-                })();
-                """
-            }
-        }))
-
-        print("⚡ Hook injected, waiting ticks...")
+        print("⚡ Listening WebSocket frames...")
 
         while True:
-            msg = await ws.recv()
-            if "PO_TICK" in msg:
-                print("RAW:", msg)
+            raw = await ws.recv()
+            if not isinstance(raw, str):
+                continue
+
+            data = json.loads(raw)
+
+            if data.get("method") != "Network.webSocketFrameReceived":
+                continue
+
+            payload = data["params"]["response"]["payloadData"]
+
+            # В payload лежит цена (без ключей)
+            if isinstance(payload, str) and "." in payload:
+                for part in payload.replace(",", " ").split():
+                    try:
+                        price = float(part)
+                        ts = asyncio.get_event_loop().time()
+
+                        CURRENT_PO_PRICE["PO"] = {
+                            "price": price,
+                            "time": ts
+                        }
+
+                        print("TICK:", price)
+                        break
+                    except:
+                        pass
+
 
 
 if __name__ == "__main__":
     asyncio.run(po_ws_loop())
+
 
 
 
